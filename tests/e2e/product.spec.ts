@@ -48,6 +48,7 @@ test("landing and populated demo remain usable at 390px", async ({ page }) => {
   await expect(page.locator("#demo-banner")).toBeVisible();
   await expect(page.locator("#passage-list li")).toHaveCount(3);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+  expect(await page.locator("button").evaluateAll((buttons) => buttons.filter((button) => !(button.innerText || "").trim() && !button.getAttribute("aria-label")).length)).toBe(0);
   for (const id of ["#reset-demo", "#leave-demo", "#export-button"]) {
     const box = await page.locator(id).boundingBox();
     expect(box?.height).toBeGreaterThanOrEqual(44);
