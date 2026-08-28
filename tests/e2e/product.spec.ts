@@ -9,6 +9,55 @@ function wav(seconds = 1) {
   return out;
 }
 
+function multitoneWav(seconds = 2) {
+  const rate = 48_000, frames = rate * seconds; const out = Buffer.alloc(44 + frames * 2);
+  out.write("RIFF", 0); out.writeUInt32LE(out.length - 8, 4); out.write("WAVEfmt ", 8); out.writeUInt32LE(16, 16); out.writeUInt16LE(1, 20); out.writeUInt16LE(1, 22); out.writeUInt32LE(rate, 24); out.writeUInt32LE(rate * 2, 28); out.writeUInt16LE(2, 32); out.writeUInt16LE(16, 34); out.write("data", 36); out.writeUInt32LE(frames * 2, 40);
+  const tones = [30, 50, 60, 1000, 2600, 12_000];
+  for (let i = 0; i < frames; i++) {
+    const level = i < frames / 2 ? .012 : .07;
+    const sample = tones.reduce((sum, hz) => sum + Math.sin(i / rate * Math.PI * 2 * hz) * level, 0);
+    out.writeInt16LE(Math.max(-32768, Math.min(32767, Math.round(sample * 32767))), 44 + i * 2);
+  }
+  return out;
+}
+
+function zipEntries(zip: Buffer) {
+  const entries = new Map<string, Buffer>(); let offset = 0;
+  while (offset + 30 <= zip.length && zip.readUInt32LE(offset) === 0x04034b50) {
+    const size = zip.readUInt32LE(offset + 18); const nameLength = zip.readUInt16LE(offset + 26); const extraLength = zip.readUInt16LE(offset + 28);
+    const nameStart = offset + 30; const dataStart = nameStart + nameLength + extraLength;
+    entries.set(zip.toString("utf8", nameStart, nameStart + nameLength), zip.subarray(dataStart, dataStart + size)); offset = dataStart + size;
+  }
+  return entries;
+}
+
+function wavData(data: Buffer) {
+  const samples = new Int16Array((data.length - 44) / 2);
+  for (let i = 0; i < samples.length; i++) samples[i] = data.readInt16LE(44 + i * 2);
+  return { samples, rate: data.readUInt32LE(24) };
+}
+
+function magnitude(audio: { samples: Int16Array; rate: number }, hz: number, fromSecond = .1, toSecond = 1.9) {
+  const { samples, rate } = audio; const from = Math.floor(fromSecond * rate), to = Math.min(samples.length, Math.floor(toSecond * rate)); let real = 0, imaginary = 0;
+  for (let i = from; i < to; i++) { const phase = 2 * Math.PI * hz * i / rate; real += samples[i] * Math.cos(phase); imaginary -= samples[i] * Math.sin(phase); }
+  return Math.hypot(real, imaginary) / (to - from);
+}
+
+function rms(audio: { samples: Int16Array; rate: number }, fromSecond: number, toSecond: number) {
+  const { samples, rate } = audio; const from = Math.floor(fromSecond * rate), to = Math.min(samples.length, Math.floor(toSecond * rate)); let sum = 0;
+  for (let i = from; i < to; i++) sum += samples[i] ** 2;
+  return Math.sqrt(sum / (to - from));
+}
+
+async function exportWavs(page: import("@playwright/test").Page) {
+  const downloadEvent = page.waitForEvent("download"); await page.locator("#export-button").click(); const download = await downloadEvent; const path = await download.path();
+  expect(path).not.toBeNull(); const entries = zipEntries(await readFile(path!)); return [...entries].filter(([name]) => name.endsWith(".wav")).map(([, data]) => wavData(data));
+}
+
+async function exportFirstWav(page: import("@playwright/test").Page) {
+  const wavs = await exportWavs(page); expect(wavs.length).toBeGreaterThan(0); return wavs[0];
+}
+
 test("desktop workbench completes a local rehearsal pack", async ({ page }) => {
   await page.goto("http://127.0.0.1:1420");
   await expect(page.locator("h1")).toHaveCount(1);
@@ -48,13 +97,66 @@ test("landing and populated demo remain usable at 390px", async ({ page }) => {
   await expect(page.locator("#demo-banner")).toBeVisible();
   await expect(page.locator("#passage-list li")).toHaveCount(3);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
-  expect(await page.locator("button").evaluateAll((buttons) => buttons.filter((button) => !(button.innerText || "").trim() && !button.getAttribute("aria-label")).length)).toBe(0);
+  expect(await page.locator("button").evaluateAll((buttons) => buttons.filter((button) => !(button.textContent || "").trim() && !button.getAttribute("aria-label")).length)).toBe(0);
   for (const id of ["#reset-demo", "#leave-demo", "#export-button"]) {
     const box = await page.locator(id).boundingBox();
     expect(box?.height).toBeGreaterThanOrEqual(44);
   }
   const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations.filter((item) => ["serious", "critical"].includes(item.impact || ""))).toEqual([]);
+  await page.locator("#theme").click();
+  const darkResults = await new AxeBuilder({ page }).analyze();
+  expect(darkResults.violations.filter((item) => ["serious", "critical"].includes(item.impact || ""))).toEqual([]);
+});
+
+test("@claim:source-change-safety source replacement respaces score passages and requires renewed rights confirmation", async ({ page }) => {
+  await page.goto("http://127.0.0.1:4173/demo/");
+  await page.locator("#rights").check();
+  await page.locator("#audio-file").setInputFiles({ name: "different-owner.wav", mimeType: "audio/wav", buffer: wav(1) });
+  await expect(page.locator("#rights")).not.toBeChecked();
+  await expect(page.locator("#export-button")).toBeDisabled();
+  await expect(page.locator("#source-error")).toContainText("3 score marks were respaced");
+  await expect(page.locator("#passage-list li")).toHaveCount(3);
+  const passageEnds = await page.locator("#passage-list li small").allTextContents();
+  expect(passageEnds.every((label) => !label.includes("0:06.0") && !label.includes("0:12.0") && !label.includes("0:18.0"))).toBe(true);
+  await page.locator("#rights").check();
+  const replacementWavs = await exportWavs(page);
+  expect(replacementWavs).toHaveLength(3);
+  for (const audio of replacementWavs) {
+    expect(audio.samples.length / audio.rate).toBeLessThanOrEqual(.34);
+    expect(audio.samples.some((sample) => sample !== 0)).toBe(true);
+  }
+
+  await page.locator("#rights").check();
+  await page.locator("#score-file").setInputFiles({ name: "replacement.musicxml", mimeType: "application/xml", buffer: Buffer.from("<score-partwise><direction><direction-type><rehearsal>C</rehearsal></direction-type></direction></score-partwise>") });
+  await expect(page.locator("#rights")).not.toBeChecked();
+  await expect(page.locator("#passage-list li")).toHaveCount(1);
+  await expect(page.locator("#passage-list")).toContainText("C");
+  await expect(page.locator("#passage-list")).not.toContainText("Opening hymn");
+});
+
+test("@claim:purchase-return hosted purchase return stores, strips, verifies, and hands the license to the desktop app", async ({ page }) => {
+  let verificationRequests = 0;
+  await page.route("https://api.github.com/repos/**", (route) => route.fulfill({ status: 503, body: "unavailable" }));
+  await page.route("https://api.sociobot.in/api/v1/products/score-aligned-choir-cleanup/verify?license=qa-return-token", (route) => { verificationRequests++; return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ valid: true, reason: "ok" }) }); });
+  await page.goto("http://127.0.0.1:4173/?license=qa-return-token");
+  await expect(page).toHaveURL("http://127.0.0.1:4173/");
+  expect(await page.evaluate(() => localStorage.getItem("sb_license:score-aligned-choir-cleanup"))).toBe("qa-return-token");
+  await expect(page.locator("#license-return")).toHaveAttribute("open", "");
+  await expect(page.locator("#license-return-status")).toHaveText("Purchase confirmed. Your Steward license is ready.");
+  await expect(page.locator("#copy-return-license")).toBeVisible();
+  expect(verificationRequests).toBe(1);
+});
+
+test("mobile text links meet the 44px touch-target baseline", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const path of ["/", "/privacy/", "/terms/", "/demo/"]) {
+    await page.goto(`http://127.0.0.1:4173${path}`);
+    const undersized = await page.locator("footer a, .platforms p a, .license-panel small a").evaluateAll((links) => links.filter((link) => {
+      const box = link.getBoundingClientRect(); return box.width > 0 && box.height > 0 && (box.width < 44 || box.height < 44);
+    }).map((link) => ({ text: link.textContent?.trim(), width: link.getBoundingClientRect().width, height: link.getBoundingClientRect().height })));
+    expect(undersized, `${path} has undersized links`).toEqual([]);
+  }
 });
 
 test("hidden score control and modal stay correct for keyboard users", async ({ page }) => {
@@ -168,6 +270,28 @@ test("@claim:score-suggestions sample exposes three editable score marks", async
   await expect(page.locator("#passage-list")).toContainText("Corrected entrance");
 });
 
+test("@claim:cleanup-filters exported presets change rumble, presence, dynamics, hum, and hiss", async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.goto("http://127.0.0.1:1420/");
+  await page.locator("#audio-file").setInputFiles({ name: "filter-fixture.wav", mimeType: "audio/wav", buffer: multitoneWav() });
+  await expect(page.locator("#audio-meta")).toContainText("filter-fixture.wav");
+  await page.locator("#passage-start").fill("0"); await page.locator("#passage-end").fill("1.8"); await page.locator("#passage-name").fill("Filter fixture"); await page.locator("#passage-form button").click();
+  await expect(page.locator("#passage-list li")).toHaveCount(1);
+  await page.locator("#rights").check();
+
+  const archive = await exportFirstWav(page);
+  await page.locator("#hum").check(); const hum = await exportFirstWav(page); await page.locator("#hum").uncheck();
+  await page.locator('input[value="clarity"]').check(); const clarity = await exportFirstWav(page);
+  await page.locator('input[value="hiss"]').check(); const hiss = await exportFirstWav(page);
+
+  expect(magnitude(archive, 30) / magnitude(archive, 1000)).toBeLessThan(.3);
+  expect(magnitude(hum, 50) / magnitude(archive, 50)).toBeLessThan(.45);
+  expect(magnitude(hum, 60) / magnitude(archive, 60)).toBeLessThan(.45);
+  expect(magnitude(clarity, 2600) / magnitude(clarity, 1000)).toBeGreaterThan(magnitude(archive, 2600) / magnitude(archive, 1000) * 1.12);
+  expect(rms(clarity, 1.15, 1.7) / rms(clarity, .15, .85)).toBeLessThan(rms(archive, 1.15, 1.7) / rms(archive, .15, .85) * .9);
+  expect(magnitude(hiss, 12_000) / magnitude(hiss, 1000)).toBeLessThan(magnitude(archive, 12_000) / magnitude(archive, 1000) * .92);
+});
+
 test("@claim:no-account-core anonymous sample enables the complete core export", async ({ page }) => {
   await page.goto("http://127.0.0.1:4173/demo/");
   await expect(page.locator("#license-state")).toHaveText("Free edition");
@@ -191,7 +315,7 @@ test("@claim:platform-downloads resolves macOS, Windows, and Linux assets", asyn
   await page.addInitScript(() => {
     const nativeFetch = window.fetch;
     window.fetch = (input, init) => String(input).includes("api.github.com/repos/")
-      ? Promise.resolve(new Response(JSON.stringify({ tag_name: "v0.1.1", assets: [
+      ? Promise.resolve(new Response(JSON.stringify({ tag_name: "v0.1.2", assets: [
         { name: "Choir.Cleanup_0.1.1_aarch64.dmg", browser_download_url: "https://example.test/mac-arm.dmg" },
         { name: "Choir.Cleanup_0.1.1_x64.dmg", browser_download_url: "https://example.test/mac-intel.dmg" },
         { name: "Choir.Cleanup_0.1.1_x64-setup.exe", browser_download_url: "https://example.test/app.exe" },

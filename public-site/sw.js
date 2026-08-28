@@ -1,4 +1,4 @@
-const CACHE = "choir-cleanup-site-v1.1.0";
+const CACHE = "choir-cleanup-site-v1.2.0";
 const SHELL = ["/", "/demo/", "/privacy/", "/terms/", "/404/", "/assets/workbench-640.webp", "/favicon.svg"];
 async function precache() {
   const cache = await caches.open(CACHE);

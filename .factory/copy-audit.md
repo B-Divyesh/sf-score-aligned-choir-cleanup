@@ -12,7 +12,7 @@ Generated from `site/index.html`. The hard limit is 22 words per sentence.
 | 1 | Download |
 | 4 | Local preservation workbench / v0. |
 | 1 | 1. |
-| 1 | 1 |
+| 1 | 2 |
 | 7 | Make rehearsal copies from choir archive recordings |
 | 14 | For community choir archivists who need clearer practice excerpts while keeping every source intact. |
 | 5 | Try it with sample data |
@@ -74,12 +74,20 @@ Generated from `site/index.html`. The hard limit is 22 words per sentence.
 | 3 | Named receipt sign-off |
 | 7 | Move between devices with a license key |
 | 3 | Buy Steward license |
+| 2 | Purchase return |
+| 6 | Add Steward to the desktop app |
+| 3 | Checking your license… |
+| 7 | Your license is saved in this browser. |
+| 11 | Copy it, then open the desktop app and choose Steward license . |
+| 2 | Copy license |
+| 4 | Get the desktop app |
+| 1 | Close |
 | 8 | Make documented rehearsal copies from choir archive recordings. |
 | 1 | Privacy |
 | 1 | Terms |
 | 1 | Source |
 | 5 | Built by Param Factory · v0. |
-| 12 | 1 · Hero image generated for this project with the factory image model. |
+| 12 | 2 · Hero image generated for this project with the factory image model. |
 
 ## Flags
 

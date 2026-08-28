@@ -92,6 +92,7 @@ function loadSampleProject() {
   ($("#rights") as HTMLInputElement).checked = false;
   ($("#project-name") as HTMLInputElement).value = "St Anne autumn concert";
   makeScoreSuggestions();
+  renderPassages();
   syncSelection();
   drawWaveform();
   updateReceipt();
@@ -108,14 +109,37 @@ function setStatus(message: string, kind: "normal" | "success" | "error" = "norm
 
 function duration() { return audioBuffer?.duration || 0; }
 
+function passageIsInBounds(passage: Passage) {
+  return Number.isFinite(passage.start) && Number.isFinite(passage.end) && passage.start >= 0 && passage.end > passage.start && passage.end <= duration();
+}
+
+function canExport() {
+  return !!audioBuffer && passages.length > 0 && passages.every(passageIsInBounds) && ($("#rights") as HTMLInputElement).checked;
+}
+
+function resetRightsConfirmation() {
+  const rights = $("#rights") as HTMLInputElement;
+  const wasConfirmed = rights.checked;
+  rights.checked = false;
+  return wasConfirmed;
+}
+
+function showSourceMessage(message: string, kind: "normal" | "error" = "normal") {
+  const node = $("#source-error");
+  node.hidden = false;
+  node.className = `message${kind === "error" ? " error" : ""}`;
+  node.textContent = message;
+}
+
 function updateReceipt() {
   const values = [audioFileName, scoreFileName, `${passages.length} marked`, `${PRESETS[cleanup().preset].name}${cleanup().hum ? " + hum notches" : ""}`];
   $("#receipt-preview").querySelectorAll("dd").forEach((dd, i) => dd.textContent = values[i]);
   $("#passage-count").textContent = String(passages.length);
-  const ready = !!audioBuffer && passages.length > 0 && ($("#rights") as HTMLInputElement).checked;
-  ($("#export-button") as HTMLButtonElement).disabled = !ready;
+  const rangesValid = passages.every(passageIsInBounds);
+  ($("#export-button") as HTMLButtonElement).disabled = !canExport();
   if (!audioBuffer) setStatus("Choose a source recording to begin.");
   else if (!passages.length) setStatus("Mark at least one passage to export.");
+  else if (!rangesValid) setStatus("A passage falls outside this recording. Review the passage times before export.", "error");
   else if (!( $("#rights") as HTMLInputElement).checked) setStatus("Confirm recording rights to enable export.");
   else setStatus(`Ready to render ${passages.length} labeled WAV ${passages.length === 1 ? "excerpt" : "excerpts"}.`, "success");
   if (!demoMode) localStorage.setItem(REAL_PROJECT_KEY, JSON.stringify({ project: ($("#project-name") as HTMLInputElement).value, preparedBy: ($("#prepared-by") as HTMLInputElement).value, notes: ($("#archive-notes") as HTMLInputElement).value }));
@@ -158,35 +182,44 @@ function drawWaveform() {
 }
 
 function makeScoreSuggestions() {
-  if (!audioBuffer || !scoreLabels.length || passages.length) return;
+  if (!audioBuffer || !scoreLabels.length || passages.some((passage) => passage.source === "score")) return 0;
   const span = duration() / scoreLabels.length;
   scoreLabels.forEach((label, i) => passages.push({ id: crypto.randomUUID(), label, start: i * span, end: Math.min(duration(), (i + 1) * span), source: "score" }));
-  renderPassages(); drawWaveform();
-  const message = $("#source-error"); message.hidden = false; message.className = "message"; message.textContent = `${scoreLabels.length} rehearsal marks were spaced evenly as editable suggestions. Confirm their timing against the recording.`;
+  return scoreLabels.length;
 }
 
 audioInput.addEventListener("change", async () => {
   const file = audioInput.files?.[0]; if (!file) return;
   const message = $("#source-error"); message.hidden = true; $("#audio-meta").textContent = `Decoding ${file.name} locally…`;
   try {
-    audioContext ||= new AudioContext(); audioBuffer = await audioContext.decodeAudioData(await file.arrayBuffer()); audioFileName = file.name;
+    audioContext ||= new AudioContext(); const decoded = await audioContext.decodeAudioData(await file.arrayBuffer());
+    stopPlayback(); audioBuffer = decoded; audioFileName = file.name; passages.splice(0); removed = null; $("#undo").hidden = true; const rightsWereConfirmed = resetRightsConfirmation();
     selection = { start: 0, end: Math.min(30, duration()) }; syncSelection();
     $("#audio-meta").textContent = `${file.name} · ${formatTime(duration())} · ${audioBuffer.sampleRate.toLocaleString()} Hz · ${audioBuffer.numberOfChannels} ch`;
     $("#audio-drop").classList.add("has-file"); $("#empty-wave").hidden = true; $("#wave-area").hidden = false;
-    $("#play-time").textContent = `0:00.0 / ${formatTime(duration())}`; makeScoreSuggestions(); drawWaveform(); updateReceipt();
+    $("#play-time").textContent = `0:00.0 / ${formatTime(duration())}`; const suggestionCount = makeScoreSuggestions(); renderPassages(); drawWaveform();
+    const suggestionNote = suggestionCount ? ` ${suggestionCount} score marks were respaced for this recording. Confirm their timing.` : " Mark passages for this recording.";
+    showSourceMessage(`Recording changed.${suggestionNote}${rightsWereConfirmed ? " Confirm rights again before export." : ""}`);
   } catch (error) {
-    audioBuffer = null; message.hidden = false; message.className = "message error"; message.textContent = `Could not decode “${file.name}”. Convert it to PCM WAV and try again. ${error instanceof Error ? error.message : ""}`;
-    $("#audio-meta").textContent = "Choose a supported recording"; updateReceipt();
+    const retainedSource = audioBuffer ? "The previous recording is still loaded." : "No recording was loaded.";
+    showSourceMessage(`Could not decode “${file.name}”. Convert it to PCM WAV and try again. ${retainedSource} ${error instanceof Error ? error.message : ""}`, "error");
+    $("#audio-meta").textContent = audioBuffer ? `${audioFileName} · ${formatTime(duration())} · still loaded` : "Choose a supported recording"; updateReceipt();
   }
 });
 
 scoreInput.addEventListener("change", async () => {
-  const file = scoreInput.files?.[0]; if (!file) return; scoreFileName = file.name; scoreLabels = [];
+  const file = scoreInput.files?.[0]; if (!file) return;
+  let nextLabels: string[] = []; let nextMeta = `${file.name} · attached as visual reference; mark timings while reading it`;
+  if (/\.(xml|musicxml)$/i.test(file.name)) { const parsed = scoreSections(await file.text()); nextLabels = parsed.labels; nextMeta = `${file.name}${parsed.title ? ` · ${parsed.title}` : ""} · ${nextLabels.length} rehearsal marks`; }
+  scoreFileName = file.name; scoreLabels = nextLabels;
   if (scoreObjectUrl) { URL.revokeObjectURL(scoreObjectUrl); scoreObjectUrl = null; }
   $("#view-score").hidden = true;
-  if (/\.(xml|musicxml)$/i.test(file.name)) { const parsed = scoreSections(await file.text()); scoreLabels = parsed.labels; $("#score-meta").textContent = `${file.name}${parsed.title ? ` · ${parsed.title}` : ""} · ${scoreLabels.length} rehearsal marks`; }
-  else { $("#score-meta").textContent = `${file.name} · attached as visual reference; mark timings while reading it`; if (/\.pdf$/i.test(file.name)) { scoreObjectUrl = URL.createObjectURL(file); ($("#score-frame") as HTMLIFrameElement).src = scoreObjectUrl; $("#view-score").hidden = false; } }
-  $("#score-drop").classList.add("has-file"); makeScoreSuggestions(); updateReceipt();
+  if (/\.pdf$/i.test(file.name)) { scoreObjectUrl = URL.createObjectURL(file); ($("#score-frame") as HTMLIFrameElement).src = scoreObjectUrl; $("#view-score").hidden = false; }
+  $("#score-meta").textContent = nextMeta; $("#score-drop").classList.add("has-file");
+  for (let i = passages.length - 1; i >= 0; i--) if (passages[i].source === "score") passages.splice(i, 1);
+  removed = null; $("#undo").hidden = true; const rightsWereConfirmed = resetRightsConfirmation(); const suggestionCount = makeScoreSuggestions(); renderPassages(); drawWaveform();
+  const suggestionNote = suggestionCount ? `${suggestionCount} new score marks were spaced as editable suggestions.` : "The old score suggestions were removed.";
+  showSourceMessage(`Section map changed. ${suggestionNote}${rightsWereConfirmed ? " Confirm rights again before export." : ""}`);
 });
 
 $("#load-sample").addEventListener("click", loadSampleProject);
@@ -219,7 +252,9 @@ $("#passage-form").addEventListener("submit", (event) => {
 $("#undo").addEventListener("click", () => { if (!removed) return; passages.splice(removed.index, 0, removed.passage); removed = null; $("#undo").hidden = true; renderPassages(); drawWaveform(); });
 
 async function renderRange(passage: { start: number; end: number }, applyCleanup: boolean): Promise<AudioBuffer> {
-  if (!audioBuffer) throw new Error("No audio loaded"); const channels = Math.min(2, audioBuffer.numberOfChannels); const length = Math.ceil((passage.end - passage.start) * audioBuffer.sampleRate);
+  if (!audioBuffer) throw new Error("No audio loaded");
+  if (!Number.isFinite(passage.start) || !Number.isFinite(passage.end) || passage.start < 0 || passage.end <= passage.start || passage.end > duration()) throw new Error("A passage falls outside the current recording. Review its start and end times");
+  const channels = Math.min(2, audioBuffer.numberOfChannels); const length = Math.ceil((passage.end - passage.start) * audioBuffer.sampleRate);
   const offline = new OfflineAudioContext(channels, length, audioBuffer.sampleRate); const source = offline.createBufferSource(); source.buffer = audioBuffer; let tail: AudioNode = source;
   if (applyCleanup) {
     const config = cleanup(); const high = offline.createBiquadFilter(); high.type = "highpass"; high.frequency.value = config.preset === "archive" ? 65 : 80; high.Q.value = .7; tail.connect(high); tail = high;
@@ -244,7 +279,7 @@ $("#reset-cleanup").addEventListener("click", () => { (document.querySelector('i
 $("#rights").addEventListener("change", updateReceipt); $("#project-name").addEventListener("input", updateReceipt); $("#prepared-by").addEventListener("input", updateReceipt); $("#archive-notes").addEventListener("input", updateReceipt);
 
 $("#export-button").addEventListener("click", async () => {
-  if (!audioBuffer || !passages.length || !( $("#rights") as HTMLInputElement).checked) return;
+  if (!canExport()) { updateReceipt(); return; }
   const button = $("#export-button") as HTMLButtonElement; const progress = $("#export-progress") as HTMLProgressElement; button.disabled = true; progress.hidden = false; progress.value = 0; setStatus("Rendering copies locally…");
   try {
     const files: { name: string; data: Uint8Array }[] = [];
@@ -258,7 +293,7 @@ $("#export-button").addEventListener("click", async () => {
     else { const url = URL.createObjectURL(new Blob([zip], { type: "application/zip" })); const anchor = document.createElement("a"); anchor.href = url; anchor.download = fileName; anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); saved = true; setStatus(`Exported ${fileName}. The original was not changed.`, "success"); }
     if (!saved) setStatus("Export canceled. No files were written.");
   } catch (error) { setStatus(`Export failed: ${error instanceof Error ? error.message : "unknown error"}. Your source is unchanged.`, "error"); }
-  finally { progress.hidden = true; button.disabled = false; }
+  finally { progress.hidden = true; button.disabled = !canExport(); }
 });
 
 function applyLicenseState(valid: boolean, message = "") { licensed = valid; $("#steward-tools").hidden = !valid; $("#license-state").textContent = valid ? "Steward unlocked" : "Free edition"; $("#license-message").textContent = message; }
@@ -289,7 +324,7 @@ async function prepareOfflineDemo() {
     await navigator.serviceWorker.register("/sw.js");
     await navigator.serviceWorker.ready;
     const urls = [location.pathname, ...[...document.querySelectorAll<HTMLScriptElement | HTMLLinkElement>('script[src],link[rel="stylesheet"]')].map((node) => node instanceof HTMLScriptElement ? node.src : node.href)];
-    await (await caches.open("choir-cleanup-site-v1.1.0")).addAll(urls);
+    await (await caches.open("choir-cleanup-site-v1.2.0")).addAll(urls);
     if (!navigator.serviceWorker.controller) await new Promise<void>((resolve, reject) => {
       const timer = window.setTimeout(() => reject(new Error("Service worker did not take control")), 5000);
       navigator.serviceWorker.addEventListener("controllerchange", () => { clearTimeout(timer); resolve(); }, { once: true });

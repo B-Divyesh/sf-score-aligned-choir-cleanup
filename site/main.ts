@@ -2,6 +2,7 @@ import "./styles.css";
 
 const RELEASE = "https://github.com/B-Divyesh/sf-score-aligned-choir-cleanup/releases/latest";
 const RELEASE_API = "https://api.github.com/repos/B-Divyesh/sf-score-aligned-choir-cleanup/releases/latest";
+const LICENSE_KEY = "sb_license:score-aligned-choir-cleanup";
 type Asset = { label: string; url: string; sha256: string };
 type Manifest = { version: string; platforms: Record<string, Asset | undefined> };
 
@@ -49,6 +50,31 @@ document.querySelectorAll<HTMLButtonElement>(".copy").forEach((button) => button
   await navigator.clipboard.writeText(button.dataset.copy || ""); const original = button.textContent; button.textContent = "Copied"; setTimeout(() => button.textContent = original, 1400);
 }));
 
+async function handleLicenseReturn() {
+  const url = new URL(location.href); const token = url.searchParams.get("license")?.trim();
+  if (!token) return;
+  localStorage.setItem(LICENSE_KEY, token);
+  url.searchParams.delete("license");
+  history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+  const dialog = document.querySelector<HTMLDialogElement>("#license-return")!;
+  const status = document.querySelector<HTMLElement>("#license-return-status")!;
+  const copy = document.querySelector<HTMLButtonElement>("#copy-return-license")!;
+  copy.addEventListener("click", async () => { await navigator.clipboard.writeText(token); copy.textContent = "License copied"; });
+  document.querySelector<HTMLButtonElement>("#close-license-return")!.addEventListener("click", () => dialog.close());
+  dialog.showModal();
+  try {
+    const response = await fetch(`https://api.sociobot.in/api/v1/products/score-aligned-choir-cleanup/verify?license=${encodeURIComponent(token)}`);
+    if (!response.ok) throw new Error("License service unavailable");
+    const result = await response.json() as { valid: boolean; reason?: string };
+    localStorage.setItem(`${LICENSE_KEY}:verdict`, JSON.stringify({ valid: result.valid, checked: Date.now() }));
+    status.textContent = result.valid ? "Purchase confirmed. Your Steward license is ready." : `This license is not active (${result.reason || "invalid"}). Core tools remain free.`;
+    copy.hidden = !result.valid;
+  } catch {
+    status.textContent = "The license service could not be reached. Your license is saved; try verifying it in the desktop app.";
+  }
+}
+
+handleLicenseReturn();
 loadDownloads();
 if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => undefined));
 
