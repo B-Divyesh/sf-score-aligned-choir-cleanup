@@ -1,0 +1,32 @@
+{
+  "name": "score-aligned-choir-cleanup",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --config vite.app.config.ts",
+    "dev:site": "vite --config vite.site.config.ts",
+    "tauri": "tauri",
+    "build:app": "vite build --config vite.app.config.ts",
+    "build:site": "vite build --config vite.site.config.ts",
+    "build": "npm run build:app && npm run build:site",
+    "test": "vitest run && npm run test:e2e",
+    "test:unit": "vitest run",
+    "test:e2e": "playwright test",
+    "check": "tsc --noEmit",
+    "assets": "node scripts/optimize-assets.mjs"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "2.8.0"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.10.2",
+    "@playwright/test": "1.58.2",
+    "@tauri-apps/cli": "2.8.4",
+    "@types/node": "22.15.30",
+    "sharp": "0.34.3",
+    "typescript": "5.8.3",
+    "vite": "6.3.5",
+    "vitest": "3.2.4"
+  }
+}

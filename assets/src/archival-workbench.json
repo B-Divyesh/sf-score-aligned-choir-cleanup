@@ -1,0 +1,7 @@
+{
+  "asset": "archival-workbench.png",
+  "generator": "Azure OpenAI factory image deployment via /opt/fleet/lib/gen-image.sh",
+  "date": "2026-08-28",
+  "prompt": "Top-down editorial still life of a careful community choir archive workbench, open SATB score with abstract non-readable notation, compact vintage reel-to-reel tape deck, translucent blueprint tracing sheet carrying a simple waveform and measured section ticks, cotton conservation gloves and a rust grease pencil, warm vellum paper, precise cyan drafting lines, deep navy ink, restrained rust accents, soft northern-window light, tactile paper and oxidized metal, generous quiet negative space, historically plausible but not brand-specific, sophisticated museum conservation mood. No people, no readable words, no logos, no watermark, no symbols, no futuristic UI, no magical glow.",
+  "review": "Accepted: coherent top-down conservation scene; no people, brands, watermarks, or readable prose. Score marks are abstract musical notation and the waveform is physically plausible."
+}
