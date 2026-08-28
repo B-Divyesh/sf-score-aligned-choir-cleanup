@@ -18,7 +18,9 @@ async function releaseManifest(): Promise<Manifest> {
   add("mac-arm64", "macOS · Apple silicon", find(/\.dmg$/i, /(aarch64|arm64)/i));
   add("mac-intel", "macOS · Intel", find(/\.dmg$/i, /(x64|x86_64)/i));
   add("windows", "Windows · x64", find(/\.exe$/i));
+  add("windows-msi", "Windows · MSI", find(/\.msi$/i));
   add("linux-appimage", "Linux · AppImage", find(/\.AppImage$/i));
+  add("linux-deb", "Linux · Debian", find(/\.deb$/i));
   return { version: release.tag_name.replace(/^v/, ""), platforms };
 }
 
@@ -40,10 +42,10 @@ async function loadDownloads() {
   const note = document.querySelector("#download-note")!;
   try {
     const manifest = await releaseManifest();
-    const mapping: Record<string, string> = { "mac-arm64": "mac-arm", "mac-intel": "mac-intel", windows: "windows", "linux-appimage": "linux" };
+    const mapping: Record<string, string> = { "mac-arm64": "mac-arm", "mac-intel": "mac-intel", windows: "windows", "windows-msi": "windows-msi", "linux-appimage": "linux", "linux-deb": "linux-deb" };
     for (const [key, id] of Object.entries(mapping)) { const asset = manifest.platforms[key]; if (asset) document.querySelector<HTMLAnchorElement>(`#${id}`)!.href = asset.url; }
     const key = await platformKey(); const asset = manifest.platforms[key];
-    if (asset) { primary.href = asset.url; primary.textContent = `Download ${asset.label}`; repeat.href = asset.url; repeat.textContent = `Latest desktop download · unsigned build · SHA256 published`; }
+    if (asset) { primary.href = asset.url; primary.textContent = `Download ${asset.label}`; repeat.href = asset.url; note.textContent = `v${manifest.version} · unsigned build · SHA-256 published`; }
     else note.textContent = "Choose a platform below.";
   } catch { primary.href = RELEASE; repeat.href = RELEASE; note.textContent = navigator.onLine ? "Release downloads are being prepared. View the release page." : "You’re offline. Reconnect to download; the installed app itself works offline."; }
 }

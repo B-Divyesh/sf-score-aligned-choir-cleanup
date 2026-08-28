@@ -224,7 +224,9 @@ test("landing page detects platform manifest and has no serious accessibility is
   await page.goto("http://127.0.0.1:4173");
   await expect(page.locator("h1")).toHaveCount(1);
   await expect(page.locator("#primary-download")).toContainText(/Windows|Linux/);
-    await expect(page.locator(".hero-art img")).toHaveAttribute("alt", /archival workbench/i);
+  await expect(page.locator("#download-note")).toHaveText("v0.1.0 · unsigned build · SHA-256 published");
+  await expect(page.locator("#download-note")).not.toContainText("Checking");
+  await expect(page.locator(".hero-art img")).toHaveAttribute("alt", /archival workbench/i);
   const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations.filter((item) => ["serious", "critical"].includes(item.impact || ""))).toEqual([]);
 });
@@ -236,6 +238,35 @@ test("legal pages are directly addressable", async ({ page }) => {
   await expect(page.locator("main h1")).toHaveText("This score mark has no page");
 });
 
+test("every public route uses the same navigation and complete metadata", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const routes = [
+    ["/", "Choir Cleanup — Make rehearsal packs"],
+    ["/demo/", "Demo — Choir Cleanup"],
+    ["/privacy/", "Privacy — Choir Cleanup"],
+    ["/terms/", "Terms — Choir Cleanup"],
+    ["/404/", "Page not found — Choir Cleanup"],
+  ] as const;
+  for (const [path, title] of routes) {
+    await page.goto(`http://127.0.0.1:4173${path}`);
+    await expect(page).toHaveTitle(title);
+    await expect(page.locator("main")).toHaveCount(1);
+    await expect(page.locator("main h1")).toHaveCount(1);
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /\S/);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /^https:\/\//);
+    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", /social-card\.webp$/);
+    await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute("content", "summary_large_image");
+    await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveCount(1);
+    await expect(page.locator('nav[aria-label="Primary"] a')).toHaveText(["Demo", "Method", "License", "Privacy"]);
+    await expect(page.locator('nav[aria-label="Primary"] a')).toHaveCount(4);
+    for (const link of await page.locator('nav[aria-label="Primary"] a').all()) await expect(link).toBeVisible();
+    await expect(page.locator("footer")).toContainText("Built by Param Factory · v0.1.5");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+    const axe = await new AxeBuilder({ page }).analyze();
+    expect(axe.violations, `${path} has axe violations`).toEqual([]);
+  }
+});
+
 test("route loads move focus to the route heading", async ({ page }) => {
   await page.goto("http://127.0.0.1:4173/");
   await expect(page.locator("main h1")).toBeFocused();
@@ -243,6 +274,23 @@ test("route loads move focus to the route heading", async ({ page }) => {
   await expect(page.locator("#app-title")).toBeFocused();
   await page.goBack();
   await expect(page.locator("main h1")).toBeFocused();
+});
+
+test("public routes and the sample flow have no console errors or broken internal links", async ({ page, request }) => {
+  const errors: string[] = [];
+  page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
+  page.on("pageerror", (error) => errors.push(error.message));
+  const paths = ["/", "/demo/", "/privacy/", "/terms/", "/404/"];
+  const internal = new Set<string>();
+  for (const path of paths) {
+    await page.goto(`http://127.0.0.1:4173${path}`);
+    for (const href of await page.locator("a[href]").evaluateAll((links) => links.map((link) => (link as HTMLAnchorElement).href))) {
+      const url = new URL(href);
+      if (url.origin === "http://127.0.0.1:4173") internal.add(`${url.pathname}${url.search}`);
+    }
+  }
+  for (const path of internal) expect((await request.get(`http://127.0.0.1:4173${path}`)).status(), path).toBeLessThan(400);
+  expect(errors).toEqual([]);
 });
 
 test("@claim:demo-isolation sample data never reads or writes real project state", async ({ page }) => {
@@ -260,6 +308,13 @@ test("@claim:demo-isolation sample data never reads or writes real project state
   await page.locator("#hum").check();
   await page.locator("#theme").click();
   await page.locator("#rights").check();
+  await page.locator("#passage-list li").first().click();
+  await page.locator("#passage-name").fill("Temporary passage");
+  await page.locator("#passage-start").fill("99:00");
+  await page.locator("#passage-form button").click();
+  await expect(page.locator("#passage-error")).not.toBeEmpty();
+  await page.locator(".license-panel summary").click();
+  await page.locator("#license-input").fill("temporary-license");
   await page.locator("#reset-demo").click();
   await expect(page.locator("#project-name")).toHaveValue("St Anne autumn concert");
   await expect(page.locator('input[value="archive"]')).toBeChecked();
@@ -267,6 +322,12 @@ test("@claim:demo-isolation sample data never reads or writes real project state
   await expect(page.locator("#rights")).not.toBeChecked();
   await expect(page.locator("html")).not.toHaveAttribute("data-theme", "dark");
   await expect(page.locator("#passage-list li")).toHaveCount(3);
+  await expect(page.locator("#passage-start")).toHaveValue("0:00.0");
+  await expect(page.locator("#passage-end")).toHaveValue("0:06.0");
+  await expect(page.locator("#passage-error")).toBeEmpty();
+  await expect(page.locator("#license-input")).toHaveValue("");
+  await expect(page.locator("#license-state")).toHaveText("Free edition");
+  await expect(page.locator("#app-title")).toBeFocused();
   const stored = await page.evaluate(() => ({
     project: localStorage.getItem("choir-cleanup:project"),
     theme: localStorage.getItem("choir-cleanup:theme"),
@@ -275,8 +336,10 @@ test("@claim:demo-isolation sample data never reads or writes real project state
   expect(stored).toEqual({ project: JSON.stringify({ project: "REAL ARCHIVE", preparedBy: "Real person", notes: "private" }), theme: "dark", license: "real-license" });
 });
 
-test("demo query opens the isolated sample route", async ({ page }) => {
-  await page.goto("http://127.0.0.1:4173/?demo=1");
+test("demo query opens the isolated sample route in one click", async ({ page }) => {
+  await page.goto("http://127.0.0.1:4173/");
+  await expect(page.getByRole("link", { name: "Try it with sample data" })).toHaveAttribute("href", "/?demo=1");
+  await page.getByRole("link", { name: "Try it with sample data" }).click();
   await expect(page).toHaveURL(/\/demo\/\?demo=1/);
   await expect(page.locator("#demo-banner")).toBeVisible();
 });
@@ -295,6 +358,27 @@ test("@claim:score-reference-import imports MusicXML marks and a PDF score refer
   await expect(page.locator("#passage-list")).toContainText("Verse");
   await page.locator("#score-file").setInputFiles({ name: "reference.pdf", mimeType: "application/pdf", buffer: Buffer.from("%PDF-1.4\n%%EOF") });
   await expect(page.locator("#view-score")).toBeVisible();
+});
+
+test("@claim:sample-duration sample contains an 18-second rehearsal and three editable score marks", async ({ page }) => {
+  await page.goto("http://127.0.0.1:4173/demo/");
+  await expect(page.locator("#audio-meta")).toContainText("0:18.0");
+  await expect(page.locator("#passage-list li")).toHaveCount(3);
+  await expect(page.locator("#passage-start")).toBeEditable();
+  await expect(page.locator("#passage-end")).toBeEditable();
+});
+
+test("@claim:musicxml-title imports a MusicXML title and score marks", async ({ page }) => {
+  await page.goto("http://127.0.0.1:1420/");
+  await page.locator("#audio-file").setInputFiles({ name: "archive.wav", mimeType: "audio/wav", buffer: wav(2) });
+  await page.locator("#score-file").setInputFiles({
+    name: "score.musicxml",
+    mimeType: "application/xml",
+    buffer: Buffer.from('<score-partwise><work><work-title>Winter Concert</work-title></work><direction><direction-type><rehearsal>Verse</rehearsal><rehearsal>Coda</rehearsal></direction-type></direction></score-partwise>'),
+  });
+  await expect(page.locator("#score-meta")).toContainText("Winter Concert");
+  await expect(page.locator("#passage-list")).toContainText("Verse");
+  await expect(page.locator("#passage-list")).toContainText("Coda");
 });
 
 test("@claim:passage-marking-inputs supports pointer, keyboard, and exact times", async ({ page }) => {
@@ -443,6 +527,49 @@ test("@claim:platform-downloads resolves macOS, Windows, and Linux assets", asyn
   await expect(page.locator("#mac-intel")).toHaveAttribute("href", "https://example.test/mac-intel.dmg");
   await expect(page.locator("#windows")).toHaveAttribute("href", "https://example.test/app.exe");
   await expect(page.locator("#linux")).toHaveAttribute("href", "https://example.test/app.AppImage");
+  await expect(page.locator("#download-note")).toHaveText("v0.1.2 · unsigned build · SHA-256 published");
+});
+
+test("@claim:desktop-release-formats resolves every advertised desktop bundle", async ({ page }) => {
+  const [workflow, manifestScript] = await Promise.all([
+    readFile(".github/workflows/release.yml", "utf8"),
+    readFile("scripts/create-release-manifest.mjs", "utf8"),
+  ]);
+  expect(workflow).toContain("--bundles appimage,deb");
+  expect(workflow).toContain("--bundles msi,nsis");
+  expect(workflow.match(/--bundles dmg/g)).toHaveLength(2);
+  for (const key of ["windows-msi", "linux-deb", "linux-appimage", "mac-arm64", "mac-intel"]) expect(manifestScript).toContain(`\"${key}\"`);
+  await page.addInitScript(() => {
+    const nativeFetch = window.fetch;
+    window.fetch = (input, init) => String(input).includes("api.github.com/repos/")
+      ? Promise.resolve(new Response(JSON.stringify({ tag_name: "v0.1.5", assets: [
+        { name: "Choir.Cleanup_0.1.5_aarch64.dmg", browser_download_url: "https://example.test/mac-arm.dmg" },
+        { name: "Choir.Cleanup_0.1.5_x64.dmg", browser_download_url: "https://example.test/mac-intel.dmg" },
+        { name: "Choir.Cleanup_0.1.5_x64-setup.exe", browser_download_url: "https://example.test/app.exe" },
+        { name: "Choir.Cleanup_0.1.5_x64_en-US.msi", browser_download_url: "https://example.test/app.msi" },
+        { name: "Choir.Cleanup_0.1.5_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage" },
+        { name: "Choir.Cleanup_0.1.5_amd64.deb", browser_download_url: "https://example.test/app.deb" },
+      ] }), { status: 200, headers: { "Content-Type": "application/json" } }))
+      : nativeFetch(input, init);
+  });
+  await page.goto("http://127.0.0.1:4173/");
+  for (const [id, url] of [
+    ["#mac-arm", "https://example.test/mac-arm.dmg"], ["#mac-intel", "https://example.test/mac-intel.dmg"],
+    ["#windows", "https://example.test/app.exe"], ["#windows-msi", "https://example.test/app.msi"],
+    ["#linux", "https://example.test/app.AppImage"], ["#linux-deb", "https://example.test/app.deb"],
+  ]) await expect(page.locator(id)).toHaveAttribute("href", url);
+});
+
+test("@claim:merchant-checkout uses hosted checkout and directs refund questions to the merchant", async ({ page }) => {
+  await page.route("https://api.github.com/repos/**", (route) => route.fulfill({ status: 503, body: "unavailable" }));
+  await page.goto("http://127.0.0.1:4173/");
+  const checkout = page.locator('#pricing a[href*="/checkout"]');
+  await expect(checkout).toHaveAttribute("href", "https://api.sociobot.in/api/v1/products/score-aligned-choir-cleanup/checkout");
+  await expect(page.locator("#pricing")).toContainText("Sociobot/Dodo is the merchant of record");
+  await expect(page.locator("#pricing")).toContainText("Ask the merchant about refunds");
+  await expect(page.locator('a[href*="dodo" i], a[href*="stripe" i]')).toHaveCount(0);
+  await page.goto("http://127.0.0.1:4173/terms/");
+  await expect(page.locator("main")).toContainText("Sociobot/Dodo handles checkout and refunds as merchant of record");
 });
 
 test("@claim:license-verification-cache reuses a fresh verdict without a request", async ({ page }) => {

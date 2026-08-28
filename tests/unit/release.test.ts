@@ -15,14 +15,16 @@ test("@claim:release-integrity release manifests and terminal installers enforce
     "Choir.Cleanup_0.1.2_aarch64.dmg": "mac arm",
     "Choir.Cleanup_0.1.2_x64.dmg": "mac intel",
     "Choir.Cleanup_0.1.2_x64-setup.exe": "windows",
+    "Choir.Cleanup_0.1.2_x64_en-US.msi": "windows msi",
     "Choir.Cleanup_0.1.2_amd64.AppImage": "linux fixture",
+    "Choir.Cleanup_0.1.2_amd64.deb": "linux deb",
   };
   for (const [name, contents] of Object.entries(files)) await writeFile(join(assets, name), contents);
   await execFile(process.execPath, [resolve("scripts/create-release-manifest.mjs"), "v0.1.2", "https://downloads.example.test/v0.1.2", assets]);
 
   const manifest = JSON.parse(await readFile(join(assets, "latest.json"), "utf8")) as { platforms: Record<string, { file: string; sha256: string }> };
   const sums = await readFile(join(assets, "SHA256SUMS"), "utf8");
-  for (const platform of ["mac-arm64", "mac-intel", "windows", "linux-appimage"]) {
+  for (const platform of ["mac-arm64", "mac-intel", "windows", "windows-msi", "linux-appimage", "linux-deb"]) {
     const asset = manifest.platforms[platform]; const bytes = await readFile(join(assets, asset.file)); const expected = createHash("sha256").update(bytes).digest("hex");
     expect(asset.sha256).toBe(expected); expect(sums).toContain(`${expected}  ${asset.file}`);
   }

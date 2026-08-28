@@ -3,20 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Make labeled rehearsal copies from choir archive recordings without changing the source." />
+    <meta name="description" content="Make rehearsal packs from choir archive recordings without changing the source." />
     <meta name="theme-color" content="#f3efe3" />
     <link rel="canonical" href="https://score-aligned-choir-cleanup.sociobot.in/demo/" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta property="og:type" content="website" /><meta property="og:title" content="Demo — Choir Cleanup" /><meta property="og:description" content="Try a ready choir rehearsal sample without saving to your project data." /><meta property="og:url" content="https://score-aligned-choir-cleanup.sociobot.in/demo/" /><meta property="og:image" content="https://score-aligned-choir-cleanup.sociobot.in/social-card.webp" />
     <meta name="twitter:card" content="summary_large_image" /><meta name="twitter:title" content="Demo — Choir Cleanup" /><meta name="twitter:description" content="Try a ready choir rehearsal sample without saving to your project data." /><meta name="twitter:image" content="https://score-aligned-choir-cleanup.sociobot.in/social-card.webp" />
-    <title>Choir Cleanup — Make documented rehearsal copies</title>
+    <title>Choir Cleanup — Make rehearsal packs</title>
   </head>
   <body>
     <a class="skip" href="#main">Skip to workbench</a>
     <header class="app-head">
-      <a class="brand" href="/" aria-label="Choir Cleanup home"><span aria-hidden="true" class="mark">⌁</span> Choir Cleanup <small>v0.1.4</small></a>
-      <nav class="app-nav" aria-label="Product navigation"><a href="/demo/">Demo</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a></nav>
+      <a class="brand" href="/" aria-label="Choir Cleanup home"><span aria-hidden="true" class="mark">⌁</span> Choir Cleanup <small>v0.1.5</small></a>
+      <nav class="app-nav" aria-label="Primary"><a href="/demo/" aria-current="page">Demo</a><a href="/#method">Method</a><a href="/#pricing">License</a><a href="/privacy/">Privacy</a></nav>
       <div class="head-actions"><span id="network" class="network">● Local workspace</span><button id="theme" class="quiet" type="button" aria-label="Switch color theme">◐ Theme</button></div>
     </header>
     <section id="demo-banner" class="demo-banner" aria-label="Sample project controls" hidden>
@@ -26,8 +26,8 @@
     </section>
     <main id="main" tabindex="-1">
       <section class="intro" aria-labelledby="app-title">
-        <div><p class="eyebrow">Conservator’s workbench / File 01</p><h1 id="app-title" tabindex="-1">Make the rehearsal copy.<br><em>Keep the evidence.</em></h1></div>
-        <div class="intro-summary"><p>Align the recording to score sections. Then export labeled WAV excerpts with an edit receipt.</p><button id="load-sample" type="button">Load sample project</button><small>Loads a bundled choir rehearsal and three editable score marks.</small></div>
+        <div><p class="eyebrow">Conservator’s workbench / File 01</p><h1 id="app-title" tabindex="-1">Make the rehearsal pack.<br><em>Keep the evidence.</em></h1></div>
+        <div class="intro-summary"><p>Align the recording to score sections. Then export labeled WAV excerpts with an edit receipt.</p><button id="load-sample" type="button">Load sample project</button><small id="sample-help">Loads a bundled choir rehearsal and three editable score marks.</small></div>
       </section>
 
       <nav class="steps" aria-label="Workflow steps">
@@ -39,7 +39,7 @@
       <section id="sources" class="sheet" aria-labelledby="sources-title">
         <header class="section-head"><div><span>01 / Sources</span><h2 id="sources-title">Place originals on the desk</h2></div><p>Read in memory only. Your files are never changed or sent away.</p></header>
         <div class="source-grid">
-          <label class="drop" id="audio-drop" for="audio-file"><span class="draft-icon" aria-hidden="true">≈</span><strong>Choose source recording</strong><small id="audio-meta">PCM WAV recording</small><input id="audio-file" type="file" accept="audio/wav,.wav" /></label>
+          <label class="drop" id="audio-drop" for="audio-file"><span class="draft-icon" aria-hidden="true">≈</span><strong>Choose source recording</strong><small id="audio-meta">Uncompressed WAV recording</small><input id="audio-file" type="file" accept="audio/wav,.wav" /></label>
           <label class="drop" id="score-drop" for="score-file"><span class="draft-icon score" aria-hidden="true">♩</span><strong>Choose score reference</strong><small id="score-meta">MusicXML reads score marks; PDF stays attached as reference</small><input id="score-file" type="file" accept=".musicxml,.xml,.pdf,application/pdf" /></label>
         </div>
         <div class="source-tools"><button id="view-score" class="quiet" type="button" hidden>View PDF reference</button></div>
@@ -48,7 +48,7 @@
       <dialog id="score-dialog" aria-labelledby="score-dialog-title"><header><h2 id="score-dialog-title">Score reference</h2><button id="close-score" type="button">Close score</button></header><iframe id="score-frame" title="Imported PDF score reference"></iframe></dialog>
 
       <section id="passages" class="sheet" aria-labelledby="passages-title">
-        <header class="section-head"><div><span>02 / Passages</span><h2 id="passages-title">Rule the rehearsal map</h2></div><p>Drag across the waveform or enter exact timecodes. Score marks are suggestions until you confirm them.</p></header>
+        <header class="section-head"><div><span>02 / Passages</span><h2 id="passages-title">Mark rehearsal passages</h2></div><p>Drag across the waveform or enter exact times. Score marks are suggestions until you confirm them.</p></header>
         <div id="empty-wave" class="empty"><span aria-hidden="true">⌁</span><strong>No recording on the desk</strong><p>Choose an audio file above to draw its waveform here.</p></div>
         <div id="wave-area" hidden>
           <div class="transport"><button id="play-original" type="button">▶ Play source</button><button id="play-clean" type="button">▶ Preview revision</button><button id="stop" class="quiet" type="button">■ Stop</button><output id="play-time">0:00.0 / 0:00.0</output></div>
@@ -84,7 +84,7 @@
             <label class="project-label">Prepared by<input id="prepared-by" maxlength="70" /></label>
             <label class="project-label">Archive notes<input id="archive-notes" maxlength="240" /></label>
           </div>
-          <label class="rights"><input id="rights" type="checkbox" /><span><strong>I confirm our choir has permission</strong> to make and share these rehearsal copies.</span></label>
+          <label class="rights"><input id="rights" type="checkbox" /><span><strong>I confirm our choir has permission</strong> to make and share these WAV excerpts.</span></label>
           <button id="export-button" class="primary" type="button">Export WAV pack + receipt</button>
           <p id="export-status" class="status" aria-live="polite">Add at least one passage and confirm rights to export.</p>
           <progress id="export-progress" max="100" value="0" hidden>0%</progress>
@@ -92,9 +92,9 @@
         <section class="receipt" aria-label="Live edit receipt preview"><span class="stamp">LOCAL / REV A</span><h3>Edit receipt</h3><dl id="receipt-preview"><div><dt>Source</dt><dd>Awaiting audio</dd></div><div><dt>Map</dt><dd>Awaiting score</dd></div><div><dt>Passages</dt><dd>0 marked</dd></div><div><dt>Revision</dt><dd>Archive gentle</dd></div></dl><p>Original preserved<br />No cloud transfer</p></section>
       </section>
 
-      <details class="license-panel"><summary>Steward license <span id="license-state">Free edition</span></summary><div><p>Every choir can import, clean, and export complete packs for free. The <strong>$39 one-time Steward unlock</strong> adds reusable project notes and named receipt sign-off—helpful for archives supporting many ensembles.</p><div class="license-actions"><a class="button-link" href="https://api.sociobot.in/api/v1/products/score-aligned-choir-cleanup/checkout">Buy Steward — $39 once</a><label>Have a license?<input id="license-input" autocomplete="off" /><button id="license-restore" type="button" aria-label="Verify Steward license">Verify license</button></label></div><p id="license-message" class="status" aria-live="polite"></p><small>Sociobot/Dodo is the merchant of record. Refunds are handled there. See <a href="https://score-aligned-choir-cleanup.sociobot.in/privacy">privacy</a> and <a href="https://score-aligned-choir-cleanup.sociobot.in/terms">terms</a>.</small></div></details>
+      <details class="license-panel"><summary>Steward license <span id="license-state">Free edition</span></summary><div><p>Every choir can import, mark passages, clean audio, and export WAV packs for free. The <strong>$39 one-time Steward license</strong> adds reusable project notes and named receipt sign-off.</p><div class="license-actions"><a class="button-link" href="https://api.sociobot.in/api/v1/products/score-aligned-choir-cleanup/checkout">Buy Steward — $39 once</a><label>Have a license?<input id="license-input" autocomplete="off" /><button id="license-restore" type="button" aria-label="Verify Steward license">Verify license</button></label></div><p id="license-message" class="status" aria-live="polite"></p><small>Sociobot/Dodo is the merchant of record. Ask the merchant about refunds. See <a href="https://score-aligned-choir-cleanup.sociobot.in/privacy/">privacy</a> and <a href="https://score-aligned-choir-cleanup.sociobot.in/terms/">terms</a>.</small></div></details>
     </main>
-    <footer><p>Works offline after installation. Audio stays on this device.</p><p><a href="/demo/">Demo</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a></p><p>Built by Param Factory · v0.1.4</p></footer>
+    <footer><p>Works offline after installation. Audio stays on this device.</p><p><a href="/demo/">Demo</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a></p><p>Built by Param Factory · v0.1.5</p></footer>
     <script type="module" src="/main.ts"></script>
   </body>
 </html>

@@ -1,24 +1,25 @@
 # Choir Cleanup
 
-Choir Cleanup makes documented rehearsal copies from choir archive recordings. It is for community choir archivists working from audio and a score.
+Choir Cleanup makes documented rehearsal packs from choir archive recordings. It is for community choir archivists working from audio and a score.
 
 Try the sample project: <https://score-aligned-choir-cleanup.sociobot.in/demo/>. It loads an 18-second St Anne Community Choir rehearsal with three editable score marks. Sample changes never enter real project storage.
 
-The desktop app combines a PCM WAV recording with MusicXML score marks or a PDF score reference. It exports labeled WAV excerpts, a file list, and an edit receipt. The app never overwrites the source. Audio processing stays on the device.
+The desktop app combines an uncompressed WAV recording with MusicXML score marks or a PDF score reference. It exports a rehearsal pack with labeled WAV excerpts, a file list, and an edit receipt. The app never overwrites the source. Audio processing stays on the device.
 
 It is not a voice separator, forensic restoration tool, or replacement for an engineer.
 
 Live site: <https://score-aligned-choir-cleanup.sociobot.in>
 
-## What v1 includes
+## Included cleanup and export features
 
-- Imports PCM WAV recordings.
+- Imports uncompressed WAV recordings.
 - MusicXML files provide titles and score marks. PDF files stay attached for reference.
 - Mark passages with a pointer, arrow keys, or exact time fields.
-- Preview the source or cleaned copy with Archive gentle, Section clarity, Hiss restraint, and optional hum filters.
+- Preview the source audio or cleaned excerpt with Archive gentle, Section clarity, Hiss restraint, and optional hum filters.
 - Rights confirmation before export.
-- A download folder containing uncompressed WAV excerpts, an edit receipt, and a file list.
-- Free complete workflow; optional $39 one-time Steward license for reusable archive notes and named receipt sign-off.
+- A rehearsal pack containing uncompressed WAV excerpts, an edit receipt, and a file list.
+- Free import, passage marking, cleanup, and WAV-pack export.
+- Optional $39 one-time Steward license for reusable archive notes and named receipt sign-off.
 - Recent license checks are reused for one day.
 - A one-click sample project with separate, memory-only demo state.
 
@@ -53,7 +54,7 @@ Push a `v*` tag or run **Release desktop apps** manually in GitHub Actions. The 
 - Windows `.exe` and `.msi` installers;
 - Linux `.AppImage` and `.deb`.
 
-Release maintainers use the workflow to build and publish the platform bundles. Builds are unsigned until the repository owner provides platform signing credentials.
+Release maintainers use the workflow to build and publish the platform bundles. Builds are unsigned until the repository owner provides signing credentials.
 
 The download section lists each supported platform. Terminal installers read `latest.json` directly and check the downloaded file against its published SHA-256 fingerprint before installation:
 
@@ -67,7 +68,7 @@ irm https://score-aligned-choir-cleanup.sociobot.in/install.ps1 | iex
 
 ## Privacy and data
 
-Audio processing uses browser/WebView audio APIs entirely on the current device. There are no analytics, remote fonts, advertising, or runtime CDNs. See [`site/privacy/index.html`](site/privacy/index.html).
+Audio processing uses local browser audio tools on the current device. There are no analytics, remote fonts, advertising, or runtime content networks. See [`site/privacy/index.html`](site/privacy/index.html).
 
 Demo mode does not read or write those real-data keys. Reset rebuilds the bundled sample in memory. See [`.factory/demo.md`](.factory/demo.md) and the tested claim inventory in [`.factory/claims.json`](.factory/claims.json).
 

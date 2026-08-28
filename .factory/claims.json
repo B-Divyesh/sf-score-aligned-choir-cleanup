@@ -14,6 +14,13 @@
     "sandbox": "fresh /demo/ context; exercise cleanup and assert every request remains same-origin"
   },
   {
+    "id": "sample-duration",
+    "claim": "The sample project contains an 18-second rehearsal and three editable score marks",
+    "where": "demo banner, source details, README",
+    "test": "npm run test:e2e -- --grep @claim:sample-duration",
+    "sandbox": "fresh /demo/ context; assert the decoded duration, three named passages, and editable controls"
+  },
+  {
     "id": "offline-workflow",
     "claim": "The installed app works offline",
     "where": "landing facts, app footer, README",
@@ -22,7 +29,7 @@
   },
   {
     "id": "documented-pack",
-    "claim": "Rights confirmation gates export; the pack includes labeled PCM WAV excerpts, a manifest, and an edit receipt without changing the source",
+    "claim": "Rights confirmation gates export; the rehearsal pack includes labeled WAV excerpts, a file list, and an edit receipt without changing the source",
     "where": "landing pack contents and method, app export, terms, README",
     "test": "npm run test:e2e -- --grep @claim:documented-pack",
     "sandbox": "export the clean sample and inspect ZIP filenames, receipt, and originalModified manifest value"
@@ -32,11 +39,11 @@
     "claim": "Changing a recording or score clears its old timing and requires fresh rights confirmation",
     "where": "app source replacement status and export gate",
     "test": "npm run test:e2e -- --grep @claim:source-change-safety",
-    "sandbox": "confirm rights in the sample, replace its audio with a one-second WAV and its score with a new map, then inspect the respaced non-silent export and renewed gate"
+    "sandbox": "confirm rights in the sample, replace its audio and score reference, then inspect the respaced non-silent export and renewed gate"
   },
   {
     "id": "score-suggestions",
-    "claim": "MusicXML rehearsal marks become editable timing suggestions",
+    "claim": "MusicXML score marks become editable timing suggestions",
     "where": "landing method, app source step, README",
     "test": "npm run test:e2e -- --grep @claim:score-suggestions",
     "sandbox": "open /demo/ and assert its three named score suggestions and editable time fields"
@@ -49,11 +56,18 @@
     "sandbox": "clean workbench; import MusicXML and PDF fixtures; assert suggestions and the PDF reference control"
   },
   {
+    "id": "musicxml-title",
+    "claim": "MusicXML files provide the score title and score marks",
+    "where": "app source details, README",
+    "test": "npm run test:e2e -- --grep @claim:musicxml-title",
+    "sandbox": "clean workbench; import a MusicXML fixture with a title and two marks; assert the title and suggestions"
+  },
+  {
     "id": "pcm-wav-import",
-    "claim": "Imports PCM WAV recordings",
+    "claim": "Imports uncompressed WAV recordings",
     "where": "landing method, app source step, README",
     "test": "npm run test:e2e -- --grep @claim:pcm-wav-import",
-    "sandbox": "clean workbench; import a generated PCM WAV and assert decoded source details"
+    "sandbox": "clean workbench; import a generated uncompressed WAV and assert decoded source details"
   },
   {
     "id": "passage-marking-inputs",
@@ -64,7 +78,7 @@
   },
   {
     "id": "source-revision-audition",
-    "claim": "Preview the source or cleaned copy before export",
+    "claim": "Preview the source audio or cleaned excerpt before export",
     "where": "landing method, app transport, README",
     "test": "npm run test:e2e -- --grep @claim:source-revision-audition",
     "sandbox": "clean demo; activate both preview controls and assert the transport updates"
@@ -105,11 +119,18 @@
     "sandbox": "stub a four-platform GitHub release response and assert each platform resolves to its asset"
   },
   {
+    "id": "desktop-release-formats",
+    "claim": "Releases provide two macOS DMGs, Windows EXE and MSI installers, and Linux AppImage and DEB bundles",
+    "where": "landing download list, README",
+    "test": "npm run test:e2e -- --grep @claim:desktop-release-formats",
+    "sandbox": "stub a release with all six bundle types and assert every visible download link resolves to its matching asset"
+  },
+  {
     "id": "release-integrity",
-    "claim": "Releases include SHA256 checksums, and terminal installers reject a mismatched download",
+    "claim": "Releases include SHA-256 checksums, and terminal installers reject a mismatched download",
     "where": "landing downloads, README, release workflow",
     "test": "npm run test:unit -- --testNamePattern @claim:release-integrity",
-    "sandbox": "generate release metadata from four fixture artifacts; compare every digest; run the Unix installer against matching and mismatched local fixtures; enforce the PowerShell checksum guard"
+    "sandbox": "generate release metadata from six fixture artifacts; compare every digest; run the Unix installer against matching and mismatched local fixtures; enforce the PowerShell checksum guard"
   },
   {
     "id": "license-verification-cache",
@@ -117,6 +138,13 @@
     "where": "privacy, README",
     "test": "npm run test:e2e -- --grep @claim:license-verification-cache",
     "sandbox": "preseed a current verified verdict, open the real app, assert Steward access and no verification request"
+  },
+  {
+    "id": "merchant-checkout",
+    "claim": "Sociobot/Dodo is the merchant of record for Steward checkout and refund questions",
+    "where": "landing pricing, app license panel, privacy, terms",
+    "test": "npm run test:e2e -- --grep @claim:merchant-checkout",
+    "sandbox": "fresh landing and terms routes; assert the Sociobot checkout destination, merchant wording, refund direction, and absence of a direct payment-provider link"
   },
   {
     "id": "license-request-minimization",

@@ -45,7 +45,7 @@ export function receiptText(input: {
     `Project: ${input.project}`,
     `Created: ${input.created}`,
     `Source audio: ${input.audio}`,
-    `Section map: ${input.score}`,
+    `Score reference: ${input.score}`,
     "Original source modified: No",
     "",
     "Reversible cleanup revision",

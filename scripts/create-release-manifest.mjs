@@ -21,4 +21,6 @@ add("linux-appimage", "Linux · AppImage", find(/\.AppImage$/i));
 add("linux-deb", "Linux · Debian", find(/\.deb$/i));
 await writeFile(join(directory, "SHA256SUMS"), assets.map((asset) => `${asset.sha256}  ${asset.name}`).sort().join("\n") + "\n");
 await writeFile(join(directory, "latest.json"), JSON.stringify({ version: version.replace(/^v/, ""), published_at: new Date().toISOString(), platforms }, null, 2) + "\n");
-if (!platforms.windows || !platforms["linux-appimage"] || !platforms["mac-arm64"] || !platforms["mac-intel"]) throw new Error(`required platform assets missing; saw: ${names.join(", ")}`);
+const required = ["mac-arm64", "mac-intel", "windows", "windows-msi", "linux-appimage", "linux-deb"];
+const missing = required.filter((key) => !platforms[key]);
+if (missing.length) throw new Error(`required platform assets missing (${missing.join(", ")}); saw: ${names.join(", ")}`);

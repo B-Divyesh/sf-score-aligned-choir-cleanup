@@ -1,7 +1,7 @@
 {
   "name": "score-aligned-choir-cleanup",
   "private": true,
-  "version": "0.1.4",
+  "version": "0.1.5",
   "type": "module",
   "scripts": {
     "dev": "vite --config vite.app.config.ts",
@@ -15,7 +15,7 @@
     "test:unit": "vitest run",
     "test:e2e": "playwright test",
     "check": "tsc --noEmit",
-    "verify:copy": "node scripts/copy-audit.mjs",
+    "verify:copy": "node scripts/copy-audit.mjs --write",
     "verify:url": "bash scripts/verify-url.sh",
     "assets": "node scripts/optimize-assets.mjs"
   },

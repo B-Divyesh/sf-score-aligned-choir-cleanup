@@ -53,11 +53,13 @@ function clearProject() {
   scoreInput.value = "";
   $("#audio-drop").classList.remove("has-file");
   $("#score-drop").classList.remove("has-file");
-  $("#audio-meta").textContent = "Choose a PCM WAV recording";
+  $("#audio-meta").textContent = "Choose an uncompressed WAV recording";
   $("#score-meta").textContent = "MusicXML or PDF";
   $("#empty-wave").hidden = false;
   $("#wave-area").hidden = true;
   $("#view-score").hidden = true;
+  $("#load-sample").hidden = false;
+  $("#sample-help").hidden = false;
   $("#undo").hidden = true;
   $("#source-error").hidden = true;
   ($("#rights") as HTMLInputElement).checked = false;
@@ -69,15 +71,21 @@ function clearProject() {
   drawWaveform();
 }
 
-function loadSampleProject() {
+function loadSampleProject(reset = false) {
+  stopPlayback();
   demoMode = true;
   document.title = "Demo — Choir Cleanup";
   $("#demo-banner").hidden = false;
+  $("#load-sample").hidden = true;
+  $("#sample-help").hidden = true;
   document.documentElement.dataset.theme = "light";
   (document.querySelector('input[value="archive"]') as HTMLInputElement).checked = true;
   ($("#hum") as HTMLInputElement).checked = false;
   passages.splice(0);
   removed = null;
+  licensed = false;
+  if (scoreObjectUrl) URL.revokeObjectURL(scoreObjectUrl);
+  scoreObjectUrl = null;
   audioBuffer = makeSampleAudio();
   audioFileName = "st-anne-community-choir-rehearsal.wav";
   scoreFileName = "st-anne-autumn-concert.musicxml";
@@ -86,21 +94,37 @@ function loadSampleProject() {
   $("#audio-drop").classList.add("has-file");
   $("#score-drop").classList.add("has-file");
   $("#audio-meta").textContent = `${audioFileName} · ${formatTime(duration())} · 16,000 Hz · 1 ch`;
-  $("#score-meta").textContent = `${scoreFileName} · Autumn concert rehearsal · 3 rehearsal marks`;
+  $("#score-meta").textContent = `${scoreFileName} · Autumn concert rehearsal · 3 score marks`;
   $("#empty-wave").hidden = true;
   $("#wave-area").hidden = false;
   $("#view-score").hidden = true;
   $("#undo").hidden = true;
   $("#source-error").hidden = true;
+  $("#passage-error").textContent = "";
+  $("#play-time").textContent = `0:00.0 / ${formatTime(duration())}`;
+  const progress = $("#export-progress") as HTMLProgressElement;
+  progress.hidden = true;
+  progress.value = 0;
+  audioInput.value = "";
+  scoreInput.value = "";
+  ($("#score-frame") as HTMLIFrameElement).removeAttribute("src");
+  const scoreDialog = $("#score-dialog") as HTMLDialogElement;
+  if (scoreDialog.open) scoreDialog.close();
   ($("#rights") as HTMLInputElement).checked = false;
   ($("#project-name") as HTMLInputElement).value = "St Anne autumn concert";
+  ($("#prepared-by") as HTMLInputElement).value = "";
+  ($("#archive-notes") as HTMLInputElement).value = "";
+  ($("#license-input") as HTMLInputElement).value = "";
+  ($("#passage-name") as HTMLInputElement).value = "Rehearsal passage 4";
+  applyLicenseState(false, "");
   makeScoreSuggestions();
   renderPassages();
   syncSelection();
   drawWaveform();
   updateReceipt();
   setStatus("Confirm sample recording rights to enable export.");
-  $("#sources").scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  $("#sources").scrollIntoView({ block: "start", behavior: reset || matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  if (reset) window.setTimeout(() => $("#app-title").focus({ preventScroll: true }), 0);
 }
 
 function cleanup(): Cleanup {
@@ -206,7 +230,7 @@ audioInput.addEventListener("change", async () => {
     showSourceMessage(`Recording changed.${suggestionNote}${rightsWereConfirmed ? " Confirm rights again before export." : ""}`);
   } catch (error) {
     const retainedSource = audioBuffer ? "The previous recording is still loaded." : "No recording was loaded.";
-    showSourceMessage(`Could not decode “${file.name}”. Convert it to PCM WAV and try again. ${retainedSource} ${error instanceof Error ? error.message : ""}`, "error");
+    showSourceMessage(`Could not decode “${file.name}”. Convert it to an uncompressed WAV file and try again. ${retainedSource} ${error instanceof Error ? error.message : ""}`, "error");
     $("#audio-meta").textContent = audioBuffer ? `${audioFileName} · ${formatTime(duration())} · still loaded` : "Choose a supported recording"; updateReceipt();
   }
 });
@@ -214,7 +238,7 @@ audioInput.addEventListener("change", async () => {
 scoreInput.addEventListener("change", async () => {
   const file = scoreInput.files?.[0]; if (!file) return;
   let nextLabels: string[] = []; let nextMeta = `${file.name} · attached as visual reference; mark timings while reading it`;
-  if (/\.(xml|musicxml)$/i.test(file.name)) { const parsed = scoreSections(await file.text()); nextLabels = parsed.labels; nextMeta = `${file.name}${parsed.title ? ` · ${parsed.title}` : ""} · ${nextLabels.length} rehearsal marks`; }
+  if (/\.(xml|musicxml)$/i.test(file.name)) { const parsed = scoreSections(await file.text()); nextLabels = parsed.labels; nextMeta = `${file.name}${parsed.title ? ` · ${parsed.title}` : ""} · ${nextLabels.length} score marks`; }
   scoreFileName = file.name; scoreLabels = nextLabels;
   if (scoreObjectUrl) { URL.revokeObjectURL(scoreObjectUrl); scoreObjectUrl = null; }
   $("#view-score").hidden = true;
@@ -223,16 +247,16 @@ scoreInput.addEventListener("change", async () => {
   for (let i = passages.length - 1; i >= 0; i--) if (passages[i].source === "score") passages.splice(i, 1);
   removed = null; $("#undo").hidden = true; const rightsWereConfirmed = resetRightsConfirmation(); const suggestionCount = makeScoreSuggestions(); renderPassages(); drawWaveform();
   const suggestionNote = suggestionCount ? `${suggestionCount} new score marks were spaced as editable suggestions.` : "The old score suggestions were removed.";
-  showSourceMessage(`Section map changed. ${suggestionNote}${rightsWereConfirmed ? " Confirm rights again before export." : ""}`);
+  showSourceMessage(`Score reference changed. ${suggestionNote}${rightsWereConfirmed ? " Confirm rights again before export." : ""}`);
 });
 
-$("#load-sample").addEventListener("click", loadSampleProject);
-$("#reset-demo").addEventListener("click", loadSampleProject);
+$("#load-sample").addEventListener("click", () => loadSampleProject());
+$("#reset-demo").addEventListener("click", () => loadSampleProject(true));
 $("#leave-demo").addEventListener("click", () => {
   if (location.pathname.replace(/\/$/, "") === "/demo") { location.assign("/#download"); return; }
   demoMode = false;
   $("#demo-banner").hidden = true;
-  document.title = "Choir Cleanup — Make documented rehearsal copies";
+  document.title = "Choir Cleanup — Make rehearsal packs";
   history.replaceState({}, "", location.pathname);
   clearProject();
   $("#app-title").focus();
