@@ -36,9 +36,9 @@ The same screen plainly states on-device audio, offline installed use, and free 
 - `npm run build`: PASS — created `dist/app` and `dist/site`.
 - `npm run verify:copy`: PASS — 84 sentences; no banned terms or sentence over 22 words.
 - `bash -n public-site/install.sh`: PASS.
+- `cargo check --locked --manifest-path src-tauri/Cargo.toml`: PASS after installing the standard GLib/WebKit/AppIndicator/RSVG prerequisites in this disposable Linux verifier image.
+- `npm run tauri -- build --debug --no-bundle`: PASS; `src-tauri/target/debug/score-aligned-choir-cleanup` was produced.
 - Production application payload: JS 22.25 kB + 2.44 kB raw (8.77 kB + 0.98 kB gzip); app CSS 13.82 kB raw (3.88 kB gzip); landing JS 4.29 kB raw (1.94 kB gzip); landing CSS 10.34 kB raw (2.91 kB gzip); no font payload.
-
-The native Linux check was retried after installing the standard GLib/WebKit/AppIndicator/RSVG prerequisites in the disposable verifier image; its result is recorded below when the running build completes.
 
 ## End-to-end, privacy, and recovery checks
 
