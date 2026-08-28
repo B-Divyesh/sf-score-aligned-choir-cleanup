@@ -1,48 +1,37 @@
-# Repair handoff — v0.1.3
-
-## Independent verification 4 — PASS
-
-Candidate `f4aa92279294cd6b467dde5897248f872fed5fa5` was independently verified against <https://score-aligned-choir-cleanup.sociobot.in/> on 2026-08-28 UTC. **PASS:** all 14 declared claim commands, full unit/e2e suite, type check, copy audit, static production build, Linux Tauri release build, live response-policy checks, accessibility scans, offline reload, release checksum, and rate-limit burst passed. The live static artifacts are byte-identical to the fresh candidate build; the v0.1.3 native release is code-identical (candidate differs only in prior handoff docs).
-
-Exact evidence and the one Low non-blocking PWA cache-maintenance defect are recorded in `.factory/verification-4.md`. No product code was changed during verification.
+# Review handoff — adversarial first-read review 1
 
 ## Outcome
 
-This repair addresses the sole release-blocking finding in independent verification commit `88c9bd43594ba3c663c41b0add5b433ac647fdd5` for candidate `72b8710fa59a254a4c1ca3d2c96b84d4914140cb`: the populated dark demo banner did not meet WCAG text contrast.
+**FAIL.** Wrote `.factory/review-1.md` for candidate `dd2d32c8c82e6b29eea19b094d2d6896eda39aea`. Product code was not modified.
 
-The Tauri 2 desktop app and static landing/demo deployment remain the original artifact and deployment classes. The researched brief, demo behavior, privacy model, release flow, and all prior passing behavior are unchanged.
+The cold 390 px and desktop landing screens clearly explain the job, audience, and first action. The one-click sample loads realistic data, preserves preseeded real-storage keys, exports offline, and makes no cross-origin demo requests. All 14 declared claim commands pass from a temporary clean clone.
 
-## Repair
+The blocking findings are:
 
-- The descriptive text in the persistent sample-demo banner now uses `var(--sheet)`, the theme-aware surface token. It is therefore `#fcf9ef` on the light banner and `#102a36` on the dark banner, rather than the prior unconditional `#d5e1df`.
-- Added the exact Playwright regression `populated demo banner keeps its descriptive text at WCAG contrast in both themes and viewports`. It opens the populated `/demo/`, measures the computed foreground/background contrast of `.demo-banner > span`, requires a ratio of at least 4.5:1, and runs axe with no serious or critical findings at 1440×900 and 390×844 in both themes.
-- Advanced the desktop package version to `0.1.3` and the service-worker cache name to `choir-cleanup-site-v1.2.1`, ensuring installed clients receive the repaired shell.
+- Reset demo leaves cleanup preset, hum, and theme edits active.
+- The previously reported `choir-cleanup-site-v1.2.0` cache remains alongside the active `v1.2.1` cache.
+- “Unlimited local projects” is not implemented: editable projects cannot be saved and reopened.
+- Public PDF/MXL, audio-format, input-method, audition, license portability/refund, release automation/detection, privacy, signing, and negative-restoration claims are absent from `.factory/claims.json`.
 
-## Verification
+The report also records incomplete route metadata, inconsistent route headers/footers, missing route-change focus, stale `v0.1.2` labels, moderate axe landmark errors, and all copy-audit findings with proposed rewrites.
 
-Run from a fresh `npm ci` install on 2026-08-28 UTC:
+## Verification performed
 
+- Fresh browser contexts at 390×844 and 1440×900 on the live landing and demo.
+- Live demo Reset/isolation/offline/export/network/cache exercise.
+- Every exact `.factory/claims.json` command separately: 14/14 passed.
 - `npm run check`: PASS.
-- `npm test`: PASS — 4 Vitest unit/integration tests and 21 Chromium Playwright tests.
-- All 14 commands declared in `.factory/claims.json`: PASS individually.
-- `npm run verify:copy`: PASS.
-- `npm run build`: PASS — created `dist/app` and `dist/site`. App JS: 22.25 kB + 2.44 kB raw (8.77 + 0.98 kB gzip); app CSS: 13.86 kB raw (3.88 kB gzip). Landing JS: 4.29 kB raw (1.94 kB gzip); landing CSS: 10.34 kB raw (2.91 kB gzip).
-- `bash -n public-site/install.sh` and `git diff --check`: PASS.
-- After installing the documented disposable-Linux Tauri prerequisites (`libwebkit2gtk-4.1-dev`, `libayatana-appindicator3-dev`, `librsvg2-dev`, and `patchelf`), `cargo check --locked --manifest-path src-tauri/Cargo.toml`: PASS.
-- `npm run tauri -- build --debug --no-bundle`: PASS; produced `src-tauri/target/debug/score-aligned-choir-cleanup` (247 MB debug executable).
-- `npm run verify:url -- <url>`: PASS on local production `/`, `/demo/`, `/privacy/`, `/terms/`, and `/404/`: valid title/lang, exactly one main and h1, image alternatives, and no console errors.
-- Browser coverage includes desktop, 390 px mobile, keyboard skip-link and dialog-Escape flow, local-only request/privacy behavior, demo isolation, offline sample export, service-worker update cache behavior, purchase return, and both light/dark axe scans.
+- `npm test`: PASS (4 unit, 21 Playwright).
+- `npm run build`: PASS; `dist/app` and `dist/site` produced in the clean clone.
+- `npm run verify:copy`: PASS as implemented, but review finding F-1-19 explains its missing coverage.
+- `npm run verify:url -- <url>`: PASS for `/`, `/demo/`, `/privacy/`, `/terms/`, and `/404/`.
+- Live link crawl: no dead navigation links; checkout was not activated because that creates external transaction state.
+- Playwright axe scans on landing/demo/legal/404, both viewports, plus light/dark demo. No serious/critical violations; moderate nested-complementary-landmark failures remain.
 
-## Deploy and release
+## Evidence and reproduction
 
-- Repair commit: `d34df7c662d5a69c85e8123256d638f9898b6ae1`, pushed to `main`; release tag: `v0.1.3`.
-- Static production deploy: `swa deploy dist/site --app-name sf-score-aligned-choir-cleanup --resource-group sociobot --env production --swa-config-location public-site --no-use-keychain`. The target is `sf-score-aligned-choir-cleanup` in resource group `sociobot`, hostname `jolly-forest-028552210.7.azurestaticapps.net`, mapped to `https://score-aligned-choir-cleanup.sociobot.in`.
-- Live identity: the production `/demo/` HTML SHA-256 is `04c3346cf34d3cddacd29ab084af5a09c229a30c0951a65338c399c6819f25f3` and its app CSS SHA-256 is `59971c9405444fde7154ea85af2fdb3e09e3a44acf0008b33ca0939d9cbe288b`; both exactly match `dist/site`.
-- Live `/demo/` at 390 px in dark mode measured `#102a36` on `#f3efe3` (12.99:1); axe returned zero serious/critical findings. Live offline reload kept all three sample passages and showed `Offline · local tools ready` with zero errors.
-- The response-policy probe of 40 concurrent invalid license checks returned 30 HTTP 200 responses and 10 HTTP 429 responses; every 429 included `Retry-After: 4`.
-- GitHub Actions release run [`33180086212`](https://github.com/B-Divyesh/sf-score-aligned-choir-cleanup/actions/runs/33180086212) completed successfully. Release [`v0.1.3`](https://github.com/B-Divyesh/sf-score-aligned-choir-cleanup/releases/tag/v0.1.3) targets the repair commit and includes two macOS DMGs, Windows EXE/MSI, Linux AppImage/DEB, `SHA256SUMS`, and `latest.json`.
-- Downloaded `Choir.Cleanup_0.1.3_amd64.deb`; its SHA-256 is `48a68c0b39be3a59b887ceeb026de7c33e882e7cdc1042d8d1efb07d5f7b73d7` and `sha256sum -c SHA256SUMS --ignore-missing` passed. `latest.json` is valid for version `0.1.3` and maps all six platform artifacts.
+See `.factory/review-1.md`. Key Reset reproduction: open `/demo/`, choose Section clarity, enable the hum filter, switch theme, press Reset demo, then inspect the same controls. Key cache reproduction: in a fresh service-worker-enabled profile, await offline readiness and run `await caches.keys()`; both `choir-cleanup-site-v1.2.0` and `choir-cleanup-site-v1.2.1` are returned.
 
-## Known gaps and operator action
+## What remains
 
-- macOS and Windows packages remain unsigned. Signing requires the owner-managed `APPLE_CERTIFICATE` and `WINDOWS_CERT_PFX` secrets; this does not affect the free local workflow.
+Resolve every `F-1-*` finding, expand the claim inventory/tests, and repeat the full review from scratch. Do not treat the passing existing suite as acceptance: it does not cover complete Reset semantics, project persistence, all public claims, full metadata, route focus, or moderate axe failures.
