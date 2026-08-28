@@ -1,37 +1,29 @@
-# Review handoff — adversarial first-read review 1
+# Polish 1 handoff
 
-## Outcome
+Repair commit: `052cfc6d7010761dadda904b17ac80cb044d531f`.
 
-**FAIL.** Wrote `.factory/review-1.md` for candidate `dd2d32c8c82e6b29eea19b094d2d6896eda39aea`. Product code was not modified.
+Every finding in `.factory/review-1.md` and prior verification records is repaired. The product remains a Tauri 2 desktop application with its archival blueprint identity. Version `0.1.4` is consistent in package, Tauri, landing, demo, legal, and 404 labels.
 
-The cold 390 px and desktop landing screens clearly explain the job, audience, and first action. The one-click sample loads realistic data, preserves preseeded real-storage keys, exports offline, and makes no cross-origin demo requests. All 14 declared claim commands pass from a temporary clean clone.
+## Exact verification
 
-The blocking findings are:
+- `npm ci`: passed, 0 vulnerabilities.
+- Claim manifest: 21 claims, with exactly one matching `@claim:<id>` test each.
+- `npm run test:e2e -- --grep '@claim:'`: 18 Chromium claim tests passed.
+- `npm run test:unit -- --testNamePattern '@claim:'`: 3 unit claim tests passed.
+- `npm test`: 7 Vitest and 28 Chromium Playwright tests passed.
+- `npm run check`, `npm run verify:copy -- --write`, `npm run build`, `bash -n public-site/install.sh`, and `git diff --check`: passed.
+- `cargo check --locked --manifest-path src-tauri/Cargo.toml`: passed after installing the release workflow’s Linux prerequisites.
+- `npm run verify:url -- <route>`: passed for `/`, `/demo/`, `/privacy/`, `/terms/`, and `/404/`; title, language, one main/h1, alt text, and console are clean.
+- Playwright axe checks are clean for empty/working app, post-export app, landing, legal, and populated light/dark demo at 390 and 1440.
+- Lighthouse local mobile-equivalent run: Performance 100, Accessibility 100, Best Practices 100, SEO 100. JSON: `/tmp/choir-lighthouse.json`.
+- Screenshot evidence: `test-results/polish-1/landing-1440.png`; `test-results/polish-1/demo-390.png`.
 
-- Reset demo leaves cleanup preset, hum, and theme edits active.
-- The previously reported `choir-cleanup-site-v1.2.0` cache remains alongside the active `v1.2.1` cache.
-- “Unlimited local projects” is not implemented: editable projects cannot be saved and reopened.
-- Public PDF/MXL, audio-format, input-method, audition, license portability/refund, release automation/detection, privacy, signing, and negative-restoration claims are absent from `.factory/claims.json`.
+## Deploy and release
 
-The report also records incomplete route metadata, inconsistent route headers/footers, missing route-change focus, stale `v0.1.2` labels, moderate axe landmark errors, and all copy-audit findings with proposed rewrites.
+Static deployment command: `npm ci && npm run build:site`; output is `dist/site`. Push `main` for the work-order static deployment. Tag `v0.1.4` to trigger the desktop release matrix and publish matching artifacts/checksums.
 
-## Verification performed
+The desktop binaries are intentionally unsigned. To sign future releases, the operator must provide `APPLE_CERTIFICATE` and `WINDOWS_CERT_PFX` plus their password/identity configuration in GitHub Actions secrets.
 
-- Fresh browser contexts at 390×844 and 1440×900 on the live landing and demo.
-- Live demo Reset/isolation/offline/export/network/cache exercise.
-- Every exact `.factory/claims.json` command separately: 14/14 passed.
-- `npm run check`: PASS.
-- `npm test`: PASS (4 unit, 21 Playwright).
-- `npm run build`: PASS; `dist/app` and `dist/site` produced in the clean clone.
-- `npm run verify:copy`: PASS as implemented, but review finding F-1-19 explains its missing coverage.
-- `npm run verify:url -- <url>`: PASS for `/`, `/demo/`, `/privacy/`, `/terms/`, and `/404/`.
-- Live link crawl: no dead navigation links; checkout was not activated because that creates external transaction state.
-- Playwright axe scans on landing/demo/legal/404, both viewports, plus light/dark demo. No serious/critical violations; moderate nested-complementary-landmark failures remain.
+## Known gaps
 
-## Evidence and reproduction
-
-See `.factory/review-1.md`. Key Reset reproduction: open `/demo/`, choose Section clarity, enable the hum filter, switch theme, press Reset demo, then inspect the same controls. Key cache reproduction: in a fresh service-worker-enabled profile, await offline readiness and run `await caches.keys()`; both `choir-cleanup-site-v1.2.0` and `choir-cleanup-site-v1.2.1` are returned.
-
-## What remains
-
-Resolve every `F-1-*` finding, expand the claim inventory/tests, and repeat the full review from scratch. Do not treat the passing existing suite as acceptance: it does not cover complete Reset semantics, project persistence, all public claims, full metadata, route focus, or moderate axe failures.
+None in the repaired product or static deployment. The `v0.1.4` desktop artifact/checksum check follows automatically once the pushed tag’s GitHub Actions run completes.
