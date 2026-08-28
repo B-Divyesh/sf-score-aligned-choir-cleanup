@@ -77,3 +77,4 @@ All core text/accent combinations are targeted at WCAG AA (4.5:1 for body text, 
 ### Authored graphics
 
 - Product mark, measure ticks, waveform, and process diagram are authored in HTML/CSS/SVG from simple geometry. They do not imitate third-party icon sets.
+- `public-site/assets/walkthrough-*.webp` are direct screenshots of the bundled fictional St Anne sample project, captured from this app on 2026-08-28. They contain no third-party data or imagery and are used only to explain the real workflow.

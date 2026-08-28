@@ -1,19 +1,22 @@
 {
   "name": "score-aligned-choir-cleanup",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "scripts": {
     "dev": "vite --config vite.app.config.ts",
     "dev:site": "vite --config vite.site.config.ts",
     "tauri": "tauri",
     "build:app": "vite build --config vite.app.config.ts",
-    "build:site": "vite build --config vite.site.config.ts",
-    "build": "npm run build:app && npm run build:site",
+    "build:site": "npm run build:app && vite build --config vite.site.config.ts && node scripts/install-demo.mjs",
+    "build": "npm run build:site",
+    "preview:site": "vite preview --config vite.site.config.ts",
     "test": "vitest run && npm run test:e2e",
     "test:unit": "vitest run",
     "test:e2e": "playwright test",
     "check": "tsc --noEmit",
+    "verify:copy": "node scripts/copy-audit.mjs",
+    "verify:url": "bash scripts/verify-url.sh",
     "assets": "node scripts/optimize-assets.mjs"
   },
   "dependencies": {

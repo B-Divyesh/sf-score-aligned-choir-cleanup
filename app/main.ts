@@ -19,6 +19,84 @@ let playTimer = 0;
 let selection = { start: 0, end: 30 };
 let dragStart: number | null = null;
 let licensed = false;
+let demoMode = location.pathname.replace(/\/$/, "") === "/demo" || new URL(location.href).searchParams.get("demo") === "1";
+
+const REAL_PROJECT_KEY = "choir-cleanup:project";
+const REAL_THEME_KEY = "choir-cleanup:theme";
+
+function makeSampleAudio(): AudioBuffer {
+  const sampleRate = 16_000;
+  const seconds = 18;
+  const buffer = new AudioBuffer({ length: sampleRate * seconds, numberOfChannels: 1, sampleRate });
+  const data = buffer.getChannelData(0);
+  const notes = [220, 277.18, 329.63, 440];
+  for (let i = 0; i < data.length; i++) {
+    const time = i / sampleRate;
+    const phrase = Math.min(1, (time % 6) / .35, (6 - (time % 6)) / .45);
+    const choir = notes.reduce((sum, hz, voice) => sum + Math.sin(2 * Math.PI * hz * time + voice * .31) * (.055 - voice * .006), 0);
+    const room = Math.sin(2 * Math.PI * 61 * time) * .008 + Math.sin(2 * Math.PI * 3300 * time) * .003;
+    data[i] = (choir + room) * Math.max(0, phrase);
+  }
+  return buffer;
+}
+
+function clearProject() {
+  stopPlayback();
+  passages.splice(0);
+  removed = null;
+  audioBuffer = null;
+  audioFileName = "Not attached";
+  scoreFileName = "Not attached";
+  scoreLabels = [];
+  selection = { start: 0, end: 30 };
+  audioInput.value = "";
+  scoreInput.value = "";
+  $("#audio-drop").classList.remove("has-file");
+  $("#score-drop").classList.remove("has-file");
+  $("#audio-meta").textContent = "Choose a supported recording";
+  $("#score-meta").textContent = "MusicXML, XML, MXL, or PDF";
+  $("#empty-wave").hidden = false;
+  $("#wave-area").hidden = true;
+  $("#view-score").hidden = true;
+  $("#undo").hidden = true;
+  $("#source-error").hidden = true;
+  ($("#rights") as HTMLInputElement).checked = false;
+  ($("#project-name") as HTMLInputElement).value = "Choir rehearsal pack";
+  ($("#prepared-by") as HTMLInputElement).value = "";
+  ($("#archive-notes") as HTMLInputElement).value = "";
+  syncSelection();
+  renderPassages();
+  drawWaveform();
+}
+
+function loadSampleProject() {
+  demoMode = true;
+  document.title = "Demo — Choir Cleanup";
+  $("#demo-banner").hidden = false;
+  passages.splice(0);
+  removed = null;
+  audioBuffer = makeSampleAudio();
+  audioFileName = "st-anne-community-choir-rehearsal.wav";
+  scoreFileName = "st-anne-autumn-concert.musicxml";
+  scoreLabels = ["Opening hymn", "Verse 2 entries", "Final cadence"];
+  selection = { start: 0, end: 6 };
+  $("#audio-drop").classList.add("has-file");
+  $("#score-drop").classList.add("has-file");
+  $("#audio-meta").textContent = `${audioFileName} · ${formatTime(duration())} · 16,000 Hz · 1 ch`;
+  $("#score-meta").textContent = `${scoreFileName} · Autumn concert rehearsal · 3 rehearsal marks`;
+  $("#empty-wave").hidden = true;
+  $("#wave-area").hidden = false;
+  $("#view-score").hidden = true;
+  $("#undo").hidden = true;
+  $("#source-error").hidden = true;
+  ($("#rights") as HTMLInputElement).checked = false;
+  ($("#project-name") as HTMLInputElement).value = "St Anne autumn concert";
+  makeScoreSuggestions();
+  syncSelection();
+  drawWaveform();
+  updateReceipt();
+  $("#sources").scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+}
 
 function cleanup(): Cleanup {
   return { preset: (document.querySelector<HTMLInputElement>('input[name="preset"]:checked')?.value || "archive") as Cleanup["preset"], hum: ($("#hum") as HTMLInputElement).checked };
@@ -40,7 +118,7 @@ function updateReceipt() {
   else if (!passages.length) setStatus("Mark at least one passage to export.");
   else if (!( $("#rights") as HTMLInputElement).checked) setStatus("Confirm recording rights to enable export.");
   else setStatus(`Ready to render ${passages.length} labeled WAV ${passages.length === 1 ? "excerpt" : "excerpts"}.`, "success");
-  localStorage.setItem("choir-cleanup:project", JSON.stringify({ project: ($("#project-name") as HTMLInputElement).value, preparedBy: ($("#prepared-by") as HTMLInputElement).value, notes: ($("#archive-notes") as HTMLInputElement).value }));
+  if (!demoMode) localStorage.setItem(REAL_PROJECT_KEY, JSON.stringify({ project: ($("#project-name") as HTMLInputElement).value, preparedBy: ($("#prepared-by") as HTMLInputElement).value, notes: ($("#archive-notes") as HTMLInputElement).value }));
 }
 
 function renderPassages() {
@@ -111,6 +189,18 @@ scoreInput.addEventListener("change", async () => {
   $("#score-drop").classList.add("has-file"); makeScoreSuggestions(); updateReceipt();
 });
 
+$("#load-sample").addEventListener("click", loadSampleProject);
+$("#reset-demo").addEventListener("click", loadSampleProject);
+$("#leave-demo").addEventListener("click", () => {
+  if (location.pathname.replace(/\/$/, "") === "/demo") { location.assign("/#download"); return; }
+  demoMode = false;
+  $("#demo-banner").hidden = true;
+  document.title = "Choir Cleanup — Make documented rehearsal copies";
+  history.replaceState({}, "", location.pathname);
+  clearProject();
+  $("#app-title").focus();
+});
+
 $("#view-score").addEventListener("click", () => ($("#score-dialog") as HTMLDialogElement).showModal());
 $("#close-score").addEventListener("click", () => ($("#score-dialog") as HTMLDialogElement).close());
 
@@ -173,6 +263,7 @@ $("#export-button").addEventListener("click", async () => {
 
 function applyLicenseState(valid: boolean, message = "") { licensed = valid; $("#steward-tools").hidden = !valid; $("#license-state").textContent = valid ? "Steward unlocked" : "Free edition"; $("#license-message").textContent = message; }
 async function verifyLicense(token: string, force = false) {
+  if (demoMode) { applyLicenseState(false, "License checks are off in the sample project. Start for real to restore a purchase."); return; }
   if (!token.trim()) { applyLicenseState(false, "Paste the license token from your receipt."); return; }
   const key = "sb_license:score-aligned-choir-cleanup"; const cacheKey = `${key}:verdict`; localStorage.setItem(key, token.trim());
   const cached = JSON.parse(localStorage.getItem(cacheKey) || "null") as { valid: boolean; checked: number } | null;
@@ -182,11 +273,28 @@ async function verifyLicense(token: string, force = false) {
   catch { applyLicenseState(cached?.valid === true, "Could not reach license service. Core tools remain available; a prior verified unlock stays available offline."); }
 }
 $("#license-restore").addEventListener("click", () => verifyLicense(( $("#license-input") as HTMLInputElement).value, true));
-const licenseFromUrl = new URL(location.href).searchParams.get("license"); if (licenseFromUrl) { history.replaceState({}, "", location.pathname + location.hash); verifyLicense(licenseFromUrl, true); } else { const token = localStorage.getItem("sb_license:score-aligned-choir-cleanup"); if (token) verifyLicense(token); }
+const licenseFromUrl = demoMode ? null : new URL(location.href).searchParams.get("license"); if (licenseFromUrl) { history.replaceState({}, "", location.pathname + location.hash); verifyLicense(licenseFromUrl, true); } else if (!demoMode) { const token = localStorage.getItem("sb_license:score-aligned-choir-cleanup"); if (token) verifyLicense(token); }
 
 function networkState() { $("#network").textContent = navigator.onLine ? "● Local workspace" : "○ Offline · local tools ready"; }
 addEventListener("online", networkState); addEventListener("offline", networkState); networkState();
-const savedTheme = localStorage.getItem("choir-cleanup:theme"); if (savedTheme) document.documentElement.dataset.theme = savedTheme;
-$("#theme").addEventListener("click", () => { const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark"; document.documentElement.dataset.theme = next; localStorage.setItem("choir-cleanup:theme", next); drawWaveform(); });
-try { const project = JSON.parse(localStorage.getItem("choir-cleanup:project") || "null"); if (project) { ( $("#project-name") as HTMLInputElement).value = project.project || "Choir rehearsal pack"; ( $("#prepared-by") as HTMLInputElement).value = project.preparedBy || ""; ( $("#archive-notes") as HTMLInputElement).value = project.notes || ""; } } catch {}
+const savedTheme = demoMode ? null : localStorage.getItem(REAL_THEME_KEY); if (savedTheme) document.documentElement.dataset.theme = savedTheme;
+$("#theme").addEventListener("click", () => { const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark"; document.documentElement.dataset.theme = next; if (!demoMode) localStorage.setItem(REAL_THEME_KEY, next); drawWaveform(); });
+if (!demoMode) try { const project = JSON.parse(localStorage.getItem(REAL_PROJECT_KEY) || "null"); if (project) { ( $("#project-name") as HTMLInputElement).value = project.project || "Choir rehearsal pack"; ( $("#prepared-by") as HTMLInputElement).value = project.preparedBy || ""; ( $("#archive-notes") as HTMLInputElement).value = project.notes || ""; } } catch {}
 syncSelection(); renderPassages();
+if (demoMode) loadSampleProject();
+
+async function prepareOfflineDemo() {
+  if (!demoMode || location.protocol === "tauri:" || !("serviceWorker" in navigator) || !("caches" in window)) return;
+  try {
+    await navigator.serviceWorker.register("/sw.js");
+    await navigator.serviceWorker.ready;
+    const urls = [location.pathname, ...[...document.querySelectorAll<HTMLScriptElement | HTMLLinkElement>('script[src],link[rel="stylesheet"]')].map((node) => node instanceof HTMLScriptElement ? node.src : node.href)];
+    await (await caches.open("choir-cleanup-site-v1.1.0")).addAll(urls);
+    if (!navigator.serviceWorker.controller) await new Promise<void>((resolve, reject) => {
+      const timer = window.setTimeout(() => reject(new Error("Service worker did not take control")), 5000);
+      navigator.serviceWorker.addEventListener("controllerchange", () => { clearTimeout(timer); resolve(); }, { once: true });
+    });
+    document.documentElement.dataset.offlineReady = "true";
+  } catch { /* The bundled desktop app does not need a browser service worker. */ }
+}
+prepareOfflineDemo();

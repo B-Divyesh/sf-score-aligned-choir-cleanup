@@ -3,19 +3,25 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Make labeled rehearsal copies from choir archive recordings without changing the source." />
     <meta name="theme-color" content="#f3efe3" />
-    <title>Choir Cleanup — Local rehearsal-copy workbench</title>
+    <title>Choir Cleanup — Make documented rehearsal copies</title>
   </head>
   <body>
     <a class="skip" href="#main">Skip to workbench</a>
     <header class="app-head">
-      <a class="brand" href="#main" aria-label="Choir Cleanup home"><span aria-hidden="true" class="mark">⌁</span> Choir Cleanup <small>v0.1</small></a>
+      <a class="brand" href="#main" aria-label="Choir Cleanup home"><span aria-hidden="true" class="mark">⌁</span> Choir Cleanup <small>v0.1.1</small></a>
       <div class="head-actions"><span id="network" class="network">● Local workspace</span><button id="theme" class="quiet" type="button" aria-label="Switch color theme">◐ Theme</button></div>
     </header>
-    <main id="main">
+    <aside id="demo-banner" class="demo-banner" aria-label="Sample project controls" hidden>
+      <strong>Demo — sample data, nothing is saved.</strong>
+      <span>St Anne Community Choir rehearsal, with three score suggestions.</span>
+      <div><button id="reset-demo" class="quiet" type="button">Reset demo</button><button id="leave-demo" type="button">Start for real</button></div>
+    </aside>
+    <main id="main" tabindex="-1">
       <section class="intro" aria-labelledby="app-title">
-        <div><p class="eyebrow">Conservator’s workbench / File 01</p><h1 id="app-title">Make the rehearsal copy.<br><em>Keep the evidence.</em></h1></div>
-        <p>Align the recording to your score’s sections, apply a restrained cleanup revision, then export labeled WAV excerpts and a plain-language edit receipt. Nothing uploads.</p>
+        <div><p class="eyebrow">Conservator’s workbench / File 01</p><h1 id="app-title" tabindex="-1">Make the rehearsal copy.<br><em>Keep the evidence.</em></h1></div>
+        <div class="intro-summary"><p>Align the recording to score sections. Then export labeled WAV excerpts with an edit receipt.</p><button id="load-sample" type="button">Load sample project</button><small>Loads a bundled choir rehearsal and three editable score marks.</small></div>
       </section>
 
       <nav class="steps" aria-label="Workflow steps">
@@ -43,8 +49,8 @@
           <div class="wave-wrap"><canvas id="waveform" width="1200" height="240" tabindex="0" aria-label="Audio waveform. Drag to set passage start and end; use arrow keys to adjust the end marker."></canvas><div class="wave-legend"><span>source waveform</span><span class="selected">marked passage</span></div></div>
           <form id="passage-form" class="passage-form">
             <label>Passage name<input id="passage-name" required maxlength="70" value="Rehearsal passage 1" /></label>
-            <label>Start <span>min:sec</span><input id="passage-start" required inputmode="decimal" value="0:00.0" /></label>
-            <label>End <span>min:sec</span><input id="passage-end" required inputmode="decimal" value="0:30.0" /></label>
+            <label>Start <span>min:sec</span><input id="passage-start" required inputmode="decimal" value="0:00.0" aria-describedby="passage-error" /></label>
+            <label>End <span>min:sec</span><input id="passage-end" required inputmode="decimal" value="0:30.0" aria-describedby="passage-error" /></label>
             <button type="submit">＋ Add passage</button>
           </form>
           <p id="passage-error" class="field-error" role="alert"></p>
@@ -82,7 +88,7 @@
 
       <details class="license-panel"><summary>Steward license <span id="license-state">Free edition</span></summary><div><p>Every choir can import, clean, and export complete packs for free. The <strong>$39 one-time Steward unlock</strong> adds reusable project notes and named receipt sign-off—helpful for archives supporting many ensembles.</p><div class="license-actions"><a class="button-link" href="https://api.sociobot.in/api/v1/products/score-aligned-choir-cleanup/checkout">Buy Steward — $39 once</a><label>Have a license?<input id="license-input" autocomplete="off" /><button id="license-restore" type="button">Verify license</button></label></div><p id="license-message" class="status" aria-live="polite"></p><small>Sociobot/Dodo is the merchant of record. Refunds are handled there. See <a href="https://score-aligned-choir-cleanup.sociobot.in/privacy">privacy</a> and <a href="https://score-aligned-choir-cleanup.sociobot.in/terms">terms</a>.</small></div></details>
     </main>
-    <footer><p>Choir Cleanup works offline after installation. Audio never leaves this device.</p><p><a href="https://score-aligned-choir-cleanup.sociobot.in/privacy">Privacy</a> · <a href="https://score-aligned-choir-cleanup.sociobot.in/terms">Terms</a></p></footer>
+    <footer><p>Works offline after installation. Audio stays on this device.</p><p><a href="https://score-aligned-choir-cleanup.sociobot.in/privacy">Privacy</a> · <a href="https://score-aligned-choir-cleanup.sociobot.in/terms">Terms</a></p></footer>
     <script type="module" src="/main.ts"></script>
   </body>
 </html>

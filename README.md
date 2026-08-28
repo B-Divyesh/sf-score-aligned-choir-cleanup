@@ -1,8 +1,12 @@
 # Choir Cleanup
 
-Choir Cleanup is a local-first desktop workbench for community choir archivists. It combines a source recording with MusicXML rehearsal marks or a PDF score reference, lets an editor mark and audition passages, applies conservative audio filters, and exports a ZIP of labeled WAV excerpts with a complete edit receipt.
+Choir Cleanup makes documented rehearsal copies from choir archive recordings. It is for community choir archivists working from audio and a score.
 
-It is intentionally not an AI voice separator, a forensic restoration tool, or a replacement for an engineer. Originals are never overwritten and recordings never leave the device.
+Try the isolated sample: <https://score-aligned-choir-cleanup.sociobot.in/demo/>. It loads an 18-second St Anne Community Choir rehearsal with three editable score marks. Sample changes never enter real project storage.
+
+The desktop app combines a recording with MusicXML marks or a PDF reference. It applies conservative filters and exports labeled PCM WAV excerpts, a manifest, and an edit receipt. The app never overwrites the source. Audio processing stays on the device.
+
+It is not a voice separator, forensic restoration tool, or replacement for an engineer.
 
 Live site: <https://score-aligned-choir-cleanup.sociobot.in>
 
@@ -16,6 +20,7 @@ Live site: <https://score-aligned-choir-cleanup.sociobot.in>
 - A ZIP containing 16-bit PCM WAV excerpts, `EDIT-RECEIPT.txt`, and `pack-manifest.json`.
 - Free complete workflow; optional $39 one-time Steward license for reusable archive notes and named receipt sign-off.
 - Local license caching with at-most-daily verification through Sociobot billing.
+- A one-click sample project with separate, memory-only demo state.
 
 ## Develop and test
 
@@ -27,6 +32,7 @@ npm run dev          # web version of the workbench on :1420
 npm run dev:site     # landing site on :5173
 npm run check        # strict TypeScript
 npm test             # Vitest + Playwright + axe checks
+npm run verify:copy  # landing copy sentence and terminology audit
 npm run build        # app frontend -> dist/app; site -> dist/site
 npm run tauri dev    # native desktop window
 ```
@@ -37,7 +43,7 @@ The factory deployment command is exactly:
 npm ci && npm run build:site
 ```
 
-It produces `dist/site/index.html` plus direct `/privacy/` and `/terms/` pages.
+It produces `dist/site/index.html` plus `/demo/`, `/privacy/`, `/terms/`, and `/404/`.
 
 ## Desktop releases
 
@@ -62,6 +68,8 @@ irm https://score-aligned-choir-cleanup.sociobot.in/install.ps1 | iex
 ## Privacy and data
 
 Audio processing uses browser/WebView audio APIs entirely on the current device. Local storage holds only UI preferences, pack metadata fields, and an optional license token/verdict. License verification sends only the token to `api.sociobot.in`. There are no analytics, remote fonts, advertising, or runtime CDNs. See [`site/privacy/index.html`](site/privacy/index.html).
+
+Demo mode does not read or write those real-data keys. Reset rebuilds the bundled sample in memory. See [`.factory/demo.md`](.factory/demo.md) and the tested claim inventory in [`.factory/claims.json`](.factory/claims.json).
 
 ## Project structure
 

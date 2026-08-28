@@ -1,6 +1,6 @@
 [package]
 name = "score-aligned-choir-cleanup"
-version = "0.1.0"
+version = "0.1.1"
 description = "Local-first score-aligned archival choir cleanup"
 authors = ["Param Factory"]
 license = "MIT"
@@ -17,4 +17,3 @@ tauri-build = { version = "2", features = [] }
 tauri = { version = "2", features = [] }
 serde = { version = "1", features = ["derive"] }
 rfd = "0.15"
-

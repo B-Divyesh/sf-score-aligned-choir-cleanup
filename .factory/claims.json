@@ -1,0 +1,72 @@
+[
+  {
+    "id": "demo-isolation",
+    "claim": "Try a ready sample project without saving to real project data",
+    "where": "landing first action, app demo banner, README",
+    "test": "npm run test:e2e -- --grep @claim:demo-isolation",
+    "sandbox": "preseed real storage, open /demo/, edit and reset, assert the real keys are unchanged"
+  },
+  {
+    "id": "on-device-audio",
+    "claim": "Audio processing stays on this device",
+    "where": "landing facts, app footer, privacy, README",
+    "test": "npm run test:e2e -- --grep @claim:on-device-audio",
+    "sandbox": "fresh /demo/ context; exercise cleanup and assert every request remains same-origin"
+  },
+  {
+    "id": "offline-workflow",
+    "claim": "The installed app works offline",
+    "where": "landing facts, app footer, README",
+    "test": "npm run test:e2e -- --grep @claim:offline-workflow",
+    "sandbox": "load /demo/ as the installed shell, set the browser context offline, and export without a request"
+  },
+  {
+    "id": "documented-pack",
+    "claim": "Rights confirmation gates export; the pack includes labeled PCM WAV excerpts, a manifest, and an edit receipt without changing the source",
+    "where": "landing pack contents and method, app export, terms, README",
+    "test": "npm run test:e2e -- --grep @claim:documented-pack",
+    "sandbox": "export the clean sample and inspect ZIP filenames, receipt, and originalModified manifest value"
+  },
+  {
+    "id": "score-suggestions",
+    "claim": "MusicXML rehearsal marks become editable timing suggestions",
+    "where": "landing method, app source step, README",
+    "test": "npm run test:e2e -- --grep @claim:score-suggestions",
+    "sandbox": "open /demo/ and assert its three named score suggestions and editable time fields"
+  },
+  {
+    "id": "no-account-core",
+    "claim": "No account is required for import, cleanup, or export",
+    "where": "landing download section, README",
+    "test": "npm run test:e2e -- --grep @claim:no-account-core",
+    "sandbox": "fresh anonymous /demo/ context; enable export without identity or license input"
+  },
+  {
+    "id": "steward-license",
+    "claim": "Core tools are free; a $39 one-time Steward license adds notes and named sign-off",
+    "where": "landing pricing, app license panel, README",
+    "test": "npm run test:e2e -- --grep @claim:steward-license",
+    "sandbox": "assert free demo controls, locked optional fields, exact price, features, and Sociobot checkout URL"
+  },
+  {
+    "id": "platform-downloads",
+    "claim": "Desktop downloads are provided for macOS, Windows, and Linux",
+    "where": "landing download section, README",
+    "test": "npm run test:e2e -- --grep @claim:platform-downloads",
+    "sandbox": "stub a four-platform GitHub release response and assert each platform resolves to its asset"
+  },
+  {
+    "id": "license-verification-cache",
+    "claim": "A recent Steward verdict is reused and license verification runs at most once per day",
+    "where": "privacy, README",
+    "test": "npm run test:e2e -- --grep @claim:license-verification-cache",
+    "sandbox": "preseed a current verified verdict, open the real app, assert Steward access and no verification request"
+  },
+  {
+    "id": "tracker-free-site",
+    "claim": "The website loads no third-party scripts, fonts, trackers, or advertising",
+    "where": "privacy, README",
+    "test": "npm run test:e2e -- --grep @claim:tracker-free-site",
+    "sandbox": "fresh landing load with release API stub; inspect requests and loaded script, style, and font resources"
+  }
+]
