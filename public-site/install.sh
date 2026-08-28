@@ -17,7 +17,7 @@ asset_url="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["pl
 expected="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["platforms"][sys.argv[2]]["sha256"])' "$tmp_dir/latest.json" "$platform")"
 asset="$tmp_dir/$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["platforms"][sys.argv[2]]["file"])' "$tmp_dir/latest.json" "$platform")"
 curl -fL "$asset_url" -o "$asset"
-actual="$(sha256sum "$asset" 2>/dev/null | awk '{print $1}' || shasum -a 256 "$asset" | awk '{print $1}')"
+if command -v sha256sum >/dev/null 2>&1; then actual="$(sha256sum "$asset" | awk '{print $1}')"; else actual="$(shasum -a 256 "$asset" | awk '{print $1}')"; fi
 [ "$actual" = "$expected" ] || { echo "Checksum verification failed; nothing was installed." >&2; exit 1; }
 
 if [ "$(uname -s)" = "Darwin" ]; then

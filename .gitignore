@@ -4,3 +4,10 @@ dist/
 *.log
 graphify-out/
 .DS_Store
+test-results/
+playwright-report/
+src-tauri/target/
+src-tauri/gen/
+desktop*.png
+mobile.png
+.factory/lighthouse.json

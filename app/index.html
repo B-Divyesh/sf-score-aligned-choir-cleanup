@@ -30,8 +30,10 @@
           <label class="drop" id="audio-drop" for="audio-file"><span class="draft-icon" aria-hidden="true">≈</span><strong>Choose source recording</strong><small id="audio-meta">WAV, MP3, M4A, FLAC, OGG — support depends on your system</small><input id="audio-file" type="file" accept="audio/*,.wav,.mp3,.m4a,.flac,.ogg" /></label>
           <label class="drop" id="score-drop" for="score-file"><span class="draft-icon score" aria-hidden="true">♩</span><strong>Choose section map</strong><small id="score-meta">MusicXML reads rehearsal marks; PDF stays attached as reference</small><input id="score-file" type="file" accept=".musicxml,.xml,.mxl,.pdf,application/pdf" /></label>
         </div>
+        <div class="source-tools"><button id="view-score" class="quiet" type="button" hidden>View PDF reference</button></div>
         <div id="source-error" class="message error" role="alert" hidden></div>
       </section>
+      <dialog id="score-dialog" aria-labelledby="score-dialog-title"><header><h2 id="score-dialog-title">Score reference</h2><button id="close-score" type="button">Close score</button></header><iframe id="score-frame" title="Imported PDF score reference"></iframe></dialog>
 
       <section id="passages" class="sheet" aria-labelledby="passages-title">
         <header class="section-head"><div><span>02 / Passages</span><h2 id="passages-title">Rule the rehearsal map</h2></div><p>Drag across the waveform or enter exact timecodes. Score marks are suggestions until you confirm them.</p></header>

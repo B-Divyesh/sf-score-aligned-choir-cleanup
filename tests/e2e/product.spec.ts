@@ -20,6 +20,8 @@ test("desktop workbench completes a local rehearsal pack", async ({ page }) => {
   const downloadEvent = page.waitForEvent("download"); await page.locator("#export-button").click(); const download = await downloadEvent;
   expect(download.suggestedFilename()).toBe("Choir-rehearsal-pack.zip");
   await expect(page.locator("#export-status")).toContainText("original was not changed", { ignoreCase: true });
+  await page.locator("#score-file").setInputFiles({ name: "reference.pdf", mimeType: "application/pdf", buffer: Buffer.from("%PDF-1.4\n%%EOF") });
+  await expect(page.locator("#view-score")).toBeVisible(); await page.locator("#view-score").click(); await expect(page.locator("#score-dialog")).toHaveAttribute("open", ""); await page.locator("#close-score").click();
 });
 
 test("app empty state and mobile layout meet accessibility baseline", async ({ page }) => {

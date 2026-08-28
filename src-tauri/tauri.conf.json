@@ -18,7 +18,7 @@
       "minHeight": 680,
       "resizable": true
     }],
-    "security": { "csp": "default-src 'self'; img-src 'self' asset: data:; connect-src 'self' https://api.sociobot.in; style-src 'self' 'unsafe-inline'" }
+    "security": { "csp": "default-src 'self'; img-src 'self' asset: data: blob:; frame-src 'self' blob:; connect-src 'self' https://api.sociobot.in; style-src 'self' 'unsafe-inline'" }
   },
   "bundle": {
     "active": true,

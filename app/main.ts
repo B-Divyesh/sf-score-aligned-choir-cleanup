@@ -12,6 +12,7 @@ let audioBuffer: AudioBuffer | null = null;
 let audioFileName = "Not attached";
 let scoreFileName = "Not attached";
 let scoreLabels: string[] = [];
+let scoreObjectUrl: string | null = null;
 let audioContext: AudioContext | null = null;
 let playing: AudioBufferSourceNode | null = null;
 let playTimer = 0;
@@ -103,10 +104,15 @@ audioInput.addEventListener("change", async () => {
 
 scoreInput.addEventListener("change", async () => {
   const file = scoreInput.files?.[0]; if (!file) return; scoreFileName = file.name; scoreLabels = [];
+  if (scoreObjectUrl) { URL.revokeObjectURL(scoreObjectUrl); scoreObjectUrl = null; }
+  $("#view-score").hidden = true;
   if (/\.(xml|musicxml)$/i.test(file.name)) { const parsed = scoreSections(await file.text()); scoreLabels = parsed.labels; $("#score-meta").textContent = `${file.name}${parsed.title ? ` · ${parsed.title}` : ""} · ${scoreLabels.length} rehearsal marks`; }
-  else $("#score-meta").textContent = `${file.name} · attached as visual reference; mark timings while reading it`;
+  else { $("#score-meta").textContent = `${file.name} · attached as visual reference; mark timings while reading it`; if (/\.pdf$/i.test(file.name)) { scoreObjectUrl = URL.createObjectURL(file); ($("#score-frame") as HTMLIFrameElement).src = scoreObjectUrl; $("#view-score").hidden = false; } }
   $("#score-drop").classList.add("has-file"); makeScoreSuggestions(); updateReceipt();
 });
+
+$("#view-score").addEventListener("click", () => ($("#score-dialog") as HTMLDialogElement).showModal());
+$("#close-score").addEventListener("click", () => ($("#score-dialog") as HTMLDialogElement).close());
 
 canvas.addEventListener("pointerdown", (event) => { if (!audioBuffer) return; const rect = canvas.getBoundingClientRect(); dragStart = Math.max(0, Math.min(duration(), (event.clientX - rect.left) / rect.width * duration())); canvas.setPointerCapture(event.pointerId); });
 canvas.addEventListener("pointerup", (event) => { if (dragStart === null) return; const rect = canvas.getBoundingClientRect(); const point = Math.max(0, Math.min(duration(), (event.clientX - rect.left) / rect.width * duration())); selection = { start: Math.min(dragStart, point), end: Math.max(dragStart, point) }; if (selection.end - selection.start < .25) selection.end = Math.min(duration(), selection.start + 5); dragStart = null; syncSelection(); drawWaveform(); });
