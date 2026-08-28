@@ -1,0 +1,9 @@
+{
+  "slug": "score-aligned-choir-cleanup",
+  "title": "Score-Aligned Choir Cleanup",
+  "user": "Community choirs preserving archival recordings when they have the score but need a cautious, local way to make rehearsal copies easier to hear.",
+  "smallest_useful_product": "Desktop app that imports audio plus a MusicXML/PDF section map, lets the user mark rehearsal passages, applies transparent local noise/EQ presets, and exports labeled excerpts with an edit receipt.",
+  "constraints": "Keep recordings local; require rights confirmation before export; preserve originals and make every filter reversible; do not promise forensic restoration or individual-part isolation.",
+  "artifact_class": "desktop-app",
+  "monetization": "one-time"
+}
