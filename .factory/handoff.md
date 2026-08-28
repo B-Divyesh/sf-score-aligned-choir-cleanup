@@ -32,7 +32,7 @@ Static deploy root: `dist/site` (contains `index.html`, legal pages, installers,
 - `npm run check`: passed.
 - `npm test`: 3 Vitest unit tests and 4 Chromium/Playwright end-to-end tests passed.
 - End-to-end coverage includes local WAV decode, MusicXML suggestions, rights confirmation, ZIP download, PDF viewer dialog, 390px overflow, direct legal routes, and axe serious/critical checks.
-- `npm run build`: passed. Initial app JS 19.93 KB uncompressed; app CSS 11.94 KB; site JS 2.45 KB; site CSS 8.00 KB. No font payload.
+- `npm run build`: passed. Initial app JS 17.81 KB uncompressed (plus a 2.44 KB save-only native bridge chunk); app CSS 12.49 KB; site JS 3.06 KB; site CSS 8.00 KB. No font payload.
 - `npm audit`: 0 vulnerabilities.
 - `cargo check --locked`: passed after installing the Linux Tauri prerequisites.
 - Native `tauri build --debug --no-bundle`: passed; executable produced locally at `src-tauri/target/debug/score-aligned-choir-cleanup` (ignored from git).
@@ -43,9 +43,11 @@ Static deploy root: `dist/site` (contains `index.html`, legal pages, installers,
 ## Release
 
 - Workflow: `.github/workflows/release.yml`.
-- Trigger: tag `v0.1.0` after this handoff commit.
+- Tag `v0.1.0` was pushed and run `33156711411` completed successfully across all jobs.
 - It builds macOS Apple-silicon and Intel DMGs, Windows MSI/EXE, and Linux AppImage/DEB, then publishes `SHA256SUMS` and `latest.json` only after all platform jobs pass.
 - Release URL: `https://github.com/B-Divyesh/sf-score-aligned-choir-cleanup/releases/tag/v0.1.0`.
+- Published assets were verified through the public GitHub API: both macOS DMGs, Windows EXE/MSI, Linux AppImage/DEB, `SHA256SUMS`, and `latest.json` are present. The 2.2 MB Windows EXE was downloaded independently; its computed SHA256 `a7b808676c1e6e70bd7e9c25de51e91c8392794c6d2450f48ed8869c29250467` exactly matched both `latest.json` and `SHA256SUMS`.
+- GitHub release-asset responses do not grant browser CORS reads. The landing page therefore uses GitHub’s CORS-enabled public Releases API for identical filenames/digests and links the published `latest.json`; terminal installers read `latest.json` directly.
 
 ## Known, intentional limits
 

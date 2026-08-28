@@ -35,8 +35,8 @@ test("app empty state and mobile layout meet accessibility baseline", async ({ p
 test("landing page detects platform manifest and has no serious accessibility issues", async ({ page }) => {
   await page.addInitScript(() => {
     const nativeFetch = window.fetch;
-    window.fetch = (input, init) => String(input).includes("latest.json")
-      ? Promise.resolve(new Response(JSON.stringify({ version: "0.1.0", platforms: { "linux-appimage": { label: "Linux · AppImage", url: "https://example.test/app.AppImage", sha256: "abc" }, windows: { label: "Windows · x64", url: "https://example.test/app.exe", sha256: "def" } } }), { status: 200, headers: { "Content-Type": "application/json" } }))
+    window.fetch = (input, init) => String(input).includes("api.github.com/repos/")
+      ? Promise.resolve(new Response(JSON.stringify({ tag_name: "v0.1.0", assets: [{ name: "Choir.Cleanup_0.1.0_amd64.AppImage", browser_download_url: "https://example.test/app.AppImage", digest: "sha256:abc" }, { name: "Choir.Cleanup_0.1.0_x64-setup.exe", browser_download_url: "https://example.test/app.exe", digest: "sha256:def" }] }), { status: 200, headers: { "Content-Type": "application/json" } }))
       : nativeFetch(input, init);
   });
   await page.goto("http://127.0.0.1:4173");

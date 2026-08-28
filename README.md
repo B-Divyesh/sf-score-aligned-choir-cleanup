@@ -49,7 +49,7 @@ Push a `v*` tag or run **Release desktop apps** manually in GitHub Actions. The 
 
 The workflow drafts one GitHub Release, attaches every bundle, creates `SHA256SUMS` and `latest.json`, validates that all required platforms are represented, and then publishes it. Builds are unsigned until the repository owner provides platform signing credentials.
 
-The landing page detects the visitor’s operating system and resolves its main button through the release `latest.json`. Terminal installers independently verify SHA256 before installation:
+The landing page detects the visitor’s operating system from GitHub’s public release metadata (mirrored in the release `latest.json`). Terminal installers read `latest.json` directly and independently verify SHA256 before installation:
 
 ```sh
 curl -fsSL https://score-aligned-choir-cleanup.sociobot.in/install.sh | sh
