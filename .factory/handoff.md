@@ -8,7 +8,7 @@ The final repair commit is `ffcceda` (`fix: align release manifest asset names`)
 
 ## Verification
 
-- Clean clone: `git clone --depth 1 file:///work/repo /tmp/choir-clean-clone-ZlHcWl && npm ci`; all 25 individual commands from `.factory/claims.json` passed. The final clean-clone result was `@claim:tracker-free-site` passing with no failed Playwright run.
+- Clean clone: `git clone --depth 1 file:///work/repo /tmp/choir-v011-clean-srnkrB && npm ci`; all 25 individual commands from `.factory/claims.json` passed. The final clean-clone result was `@claim:tracker-free-site` passing with no failed Playwright run.
 - Current tree: `npm run verify:copy`, `npm run check`, `npm test` (9 unit tests and 34 Playwright/axe tests), `npm run build`, and `cargo test --manifest-path src-tauri/Cargo.toml` passed.
 - Accessibility and structure: `npm run verify:url -- https://score-aligned-choir-cleanup.sociobot.in/{,demo/,privacy/,terms/,404/}` passed with one title/lang/main/h1, alt text, and zero console errors. The Playwright axe integration had zero violations on every public route at 390 px.
 - Cold production verification: `EXPECTED_VERSION=0.1.11 npm run verify:live -- https://score-aligned-choir-cleanup.sociobot.in` passed. It exercised first-screen copy/download completion, demo isolation/reset, offline pack export, h1 focus/Back navigation, navigation set, metadata, no overflow, axe, console, and 404. Screenshots are `test-results/polish-2/live-first-screen-390.png` and `test-results/polish-2/live-demo-390.png`.
