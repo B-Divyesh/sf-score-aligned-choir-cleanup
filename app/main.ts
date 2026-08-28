@@ -123,13 +123,25 @@ function loadSampleProject(reset = false) {
   drawWaveform();
   updateReceipt();
   setStatus("Confirm sample recording rights to enable export.");
-  if (reset) window.setTimeout(() => {
-    const previousScrollBehavior = document.documentElement.style.scrollBehavior;
-    document.documentElement.style.scrollBehavior = "auto";
-    $("#sources").scrollIntoView({ block: "start", behavior: "auto" });
-    document.documentElement.style.scrollBehavior = previousScrollBehavior;
-    $("#app-title").focus({ preventScroll: true });
-  }, 0);
+  if (reset) {
+    document.documentElement.dataset.resetting = "true";
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      const previousScrollBehavior = document.documentElement.style.scrollBehavior;
+      document.documentElement.style.scrollBehavior = "auto";
+      const sources = $("#sources");
+      const stickyNodes = [$(".app-head"), $("#demo-banner")]
+        .filter((node) => getComputedStyle(node).position === "sticky" && !node.hidden);
+      const stickyOffset = stickyNodes
+        .reduce((height, node) => height + node.getBoundingClientRect().height, 12);
+      window.scrollTo({ top: Math.max(0, sources.getBoundingClientRect().top + window.scrollY - stickyOffset), behavior: "auto" });
+      const visibleBottom = Math.max(0, ...stickyNodes.map((node) => node.getBoundingClientRect().bottom));
+      const coveredBy = visibleBottom + 12 - sources.getBoundingClientRect().top;
+      if (coveredBy > 0) window.scrollBy({ top: -coveredBy, behavior: "auto" });
+      document.documentElement.style.scrollBehavior = previousScrollBehavior;
+      $("#app-title").focus({ preventScroll: true });
+      delete document.documentElement.dataset.resetting;
+    }));
+  }
   else $("#sources").scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
 }
 

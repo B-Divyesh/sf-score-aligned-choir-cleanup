@@ -260,7 +260,7 @@ test("every public route uses the same navigation and complete metadata", async 
     await expect(page.locator('nav[aria-label="Primary"] a')).toHaveText(["Demo", "Method", "License", "Privacy"]);
     await expect(page.locator('nav[aria-label="Primary"] a')).toHaveCount(4);
     for (const link of await page.locator('nav[aria-label="Primary"] a').all()) await expect(link).toBeVisible();
-    await expect(page.locator("footer")).toContainText("Built by Param Factory · v0.1.6");
+    await expect(page.locator("footer")).toContainText("Built by Param Factory · v0.1.7");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
     const axe = await new AxeBuilder({ page }).analyze();
     expect(axe.violations, `${path} has axe violations`).toEqual([]);
@@ -294,6 +294,7 @@ test("public routes and the sample flow have no console errors or broken interna
 });
 
 test("@claim:demo-isolation sample data never reads or writes real project state", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
   await page.addInitScript(() => {
     localStorage.setItem("choir-cleanup:project", JSON.stringify({ project: "REAL ARCHIVE", preparedBy: "Real person", notes: "private" }));
     localStorage.setItem("choir-cleanup:theme", "dark");
@@ -316,10 +317,12 @@ test("@claim:demo-isolation sample data never reads or writes real project state
   await page.locator(".license-panel summary").click();
   await page.locator("#license-input").fill("temporary-license");
   await page.locator("#reset-demo").click();
+  await expect(page.locator("html")).not.toHaveAttribute("data-resetting", "true");
   await expect(page.locator("#app-title")).toBeFocused();
   const sourceTop = await page.locator("#sources").evaluate((node) => node.getBoundingClientRect().top);
-  expect(sourceTop).toBeGreaterThanOrEqual(-2);
-  expect(sourceTop).toBeLessThan(260);
+  const bannerBottom = await page.locator("#demo-banner").evaluate((node) => node.getBoundingClientRect().bottom);
+  expect(sourceTop).toBeGreaterThanOrEqual(bannerBottom + 4);
+  expect(sourceTop).toBeLessThan(bannerBottom + 80);
   await expect(page.locator("#project-name")).toHaveValue("St Anne autumn concert");
   await expect(page.locator('input[value="archive"]')).toBeChecked();
   await expect(page.locator("#hum")).not.toBeChecked();

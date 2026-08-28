@@ -4,7 +4,7 @@ import { chromium } from "playwright-core";
 import AxeBuilder from "@axe-core/playwright";
 
 const base = (process.argv[2] || "https://score-aligned-choir-cleanup.sociobot.in").replace(/\/$/, "");
-const expectedVersion = process.env.EXPECTED_VERSION || "0.1.6";
+const expectedVersion = process.env.EXPECTED_VERSION || "0.1.7";
 const evidence = process.env.EVIDENCE_DIR || "test-results/polish-2";
 await mkdir(evidence, { recursive: true });
 
@@ -61,9 +61,11 @@ await page.locator("#theme").click();
 await page.locator("#rights").check();
 await page.locator("#project-name").fill("Temporary live edit");
 await page.locator("#reset-demo").click();
+await page.locator("html:not([data-resetting])").waitFor();
 assert.equal(await page.evaluate(() => document.activeElement?.id), "app-title");
 const sourceTop = await page.locator("#sources").evaluate((node) => node.getBoundingClientRect().top);
-assert(sourceTop >= -2 && sourceTop < 260, `Reset scroll is not at Sources: ${sourceTop}`);
+const bannerBottom = await page.locator("#demo-banner").evaluate((node) => node.getBoundingClientRect().bottom);
+assert(sourceTop >= bannerBottom + 4 && sourceTop < bannerBottom + 80, `Reset Sources heading is covered: source ${sourceTop}, banner ${bannerBottom}`);
 assert.equal(await page.locator("#project-name").inputValue(), "St Anne autumn concert");
 assert.equal(await page.locator('input[value="archive"]').isChecked(), true);
 assert.equal(await page.locator("#hum").isChecked(), false);
