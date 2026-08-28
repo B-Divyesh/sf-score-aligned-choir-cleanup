@@ -21,10 +21,12 @@ Every finding in `.factory/review-1.md` and prior verification records is repair
 
 ## Deploy and release
 
-Static deployment command: `npm ci && npm run build:site`; output is `dist/site`. Push `main` for the work-order static deployment. Tag `v0.1.4` to trigger the desktop release matrix and publish matching artifacts/checksums.
+Static deployment command: `npm ci && npm run build:site`; output is `dist/site`. It was deployed through `/opt/fleet/lib/deploy-static.sh score-aligned-choir-cleanup dist/site`; cold live checks passed at `https://score-aligned-choir-cleanup.sociobot.in/`.
+
+Release workflow `33189080475` completed successfully for repair SHA `052cfc6d7010761dadda904b17ac80cb044d531f`. Release `v0.1.4` has macOS ARM/Intel DMGs, Windows EXE/MSI, Linux AppImage/DEB, `SHA256SUMS`, and `latest.json`. The Linux AppImage SHA-256 independently matched: `4701bc64a1d0278b11d9f8ad8fabf7eb7f1629695ec8f55ac811b181fe928eef`.
 
 The desktop binaries are intentionally unsigned. To sign future releases, the operator must provide `APPLE_CERTIFICATE` and `WINDOWS_CERT_PFX` plus their password/identity configuration in GitHub Actions secrets.
 
 ## Known gaps
 
-None in the repaired product or static deployment. The `v0.1.4` desktop artifact/checksum check follows automatically once the pushed tag’s GitHub Actions run completes.
+None.

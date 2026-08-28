@@ -49,4 +49,4 @@ Repair commit: `052cfc6d7010761dadda904b17ac80cb044d531f`. Visual evidence: `tes
 | F-1-43 | Standardized score-reference terminology. | Copy terminology table |
 | F-1-44 | Rewrote choir-archivist process heading. | Copy audit |
 
-All earlier defects—source replacement/right reset, purchase return, hidden PDF control, dark contrast, touch targets, service-worker cleanup, offline, and installer checksums—remain covered by the full suite. Cold live recheck passed for every route and the full reset/query-demo flow. No finding is deferred.
+All earlier defects—source replacement/right reset, purchase return, hidden PDF control, dark contrast, touch targets, service-worker cleanup, offline, and installer checksums—remain covered by the full suite. Cold live recheck passed for every route and the full reset/query-demo flow. Release workflow `33189080475` published v0.1.4 and its AppImage checksum was independently verified. No finding is deferred.
