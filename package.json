@@ -17,6 +17,7 @@
     "check": "tsc --noEmit",
     "verify:copy": "node scripts/copy-audit.mjs --write",
     "verify:url": "bash scripts/verify-url.sh",
+    "verify:live": "node scripts/verify-live.mjs",
     "assets": "node scripts/optimize-assets.mjs"
   },
   "dependencies": {
