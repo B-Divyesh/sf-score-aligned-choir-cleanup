@@ -12,7 +12,7 @@ Checks: 22-word sentence cap, first-screen shape, banned marketing, jargon, stan
 | site/index.html | text | 1 | Method |
 | site/index.html | text | 1 | License |
 | site/index.html | text | 1 | Privacy |
-| site/index.html | text | 4 | Local preservation workbench / v0.1.10 |
+| site/index.html | text | 4 | Local preservation workbench / v0.1.11 |
 | site/index.html | heading | 7 | Make rehearsal packs from choir archive recordings |
 | site/index.html | text | 14 | For community choir archivists who need labeled WAV excerpts while keeping every source intact. |
 | site/index.html | text | 5 | Try it with sample data |
@@ -88,7 +88,7 @@ Checks: 22-word sentence cap, first-screen shape, banned marketing, jargon, stan
 | site/index.html | text | 8 | Make documented rehearsal packs from choir archive recordings. |
 | site/index.html | text | 1 | Terms |
 | site/index.html | text | 1 | Source |
-| site/index.html | text | 16 | Built by Param Factory · v0.1.10 · Hero image generated for this project with the factory image model. |
+| site/index.html | text | 16 | Built by Param Factory · v0.1.11 · Hero image generated for this project with the factory image model. |
 | site/index.html | alternative | 3 | Choir Cleanup home |
 | site/index.html | alternative | 1 | Primary |
 | site/index.html | alternative | 20 | An archival workbench with an open choral score, reel-to-reel tape deck, gloves, pencil, and a waveform drawn on tracing paper |
@@ -128,7 +128,7 @@ Checks: 22-word sentence cap, first-screen shape, banned marketing, jargon, stan
 | site/privacy/index.html | text | 7 | Do not attach recordings or license tokens. |
 | site/privacy/index.html | text | 8 | Make documented rehearsal packs from choir archive recordings. |
 | site/privacy/index.html | text | 3 | Demo Privacy Terms |
-| site/privacy/index.html | text | 5 | Built by Param Factory · v0.1.10 |
+| site/privacy/index.html | text | 5 | Built by Param Factory · v0.1.11 |
 | site/privacy/index.html | alternative | 1 | Primary |
 | site/terms/index.html | text | 3 | Skip to content |
 | site/terms/index.html | text | 2 | ⌁ Choir Cleanup |
@@ -162,7 +162,7 @@ Checks: 22-word sentence cap, first-screen shape, banned marketing, jargon, stan
 | site/terms/index.html | text | 9 | These terms cover the hosted download and license service. |
 | site/terms/index.html | text | 8 | Make documented rehearsal packs from choir archive recordings. |
 | site/terms/index.html | text | 3 | Demo Privacy Terms |
-| site/terms/index.html | text | 5 | Built by Param Factory · v0.1.10 |
+| site/terms/index.html | text | 5 | Built by Param Factory · v0.1.11 |
 | site/terms/index.html | alternative | 1 | Primary |
 | site/404/index.html | text | 3 | Skip to content |
 | site/404/index.html | text | 2 | ⌁ Choir Cleanup |
@@ -176,10 +176,10 @@ Checks: 22-word sentence cap, first-screen shape, banned marketing, jargon, stan
 | site/404/index.html | text | 9 | Return to Choir Cleanup or try the sample project . |
 | site/404/index.html | text | 8 | Make documented rehearsal packs from choir archive recordings. |
 | site/404/index.html | text | 3 | Demo Privacy Terms |
-| site/404/index.html | text | 5 | Built by Param Factory · v0.1.10 |
+| site/404/index.html | text | 5 | Built by Param Factory · v0.1.11 |
 | site/404/index.html | alternative | 1 | Primary |
 | app/index.html | text | 3 | Skip to workbench |
-| app/index.html | text | 3 | ⌁ Choir Cleanup v0.1.10 |
+| app/index.html | text | 3 | ⌁ Choir Cleanup v0.1.11 |
 | app/index.html | text | 1 | Demo |
 | app/index.html | text | 1 | Method |
 | app/index.html | text | 1 | License |
@@ -238,7 +238,7 @@ Checks: 22-word sentence cap, first-screen shape, banned marketing, jargon, stan
 | app/index.html | text | 4 | Works offline after installation. |
 | app/index.html | text | 5 | Audio stays on this device. |
 | app/index.html | text | 3 | Demo Privacy Terms |
-| app/index.html | text | 5 | Built by Param Factory · v0.1.10 |
+| app/index.html | text | 5 | Built by Param Factory · v0.1.11 |
 | app/index.html | alternative | 3 | Choir Cleanup home |
 | app/index.html | alternative | 1 | Primary |
 | app/index.html | alternative | 3 | Switch color theme |

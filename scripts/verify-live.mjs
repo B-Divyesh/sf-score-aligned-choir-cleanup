@@ -4,7 +4,7 @@ import { chromium } from "playwright-core";
 import AxeBuilder from "@axe-core/playwright";
 
 const base = (process.argv[2] || "https://score-aligned-choir-cleanup.sociobot.in").replace(/\/$/, "");
-const expectedVersion = process.env.EXPECTED_VERSION || "0.1.10";
+const expectedVersion = process.env.EXPECTED_VERSION || "0.1.11";
 const evidence = process.env.EVIDENCE_DIR || "test-results/polish-2";
 await mkdir(evidence, { recursive: true });
 

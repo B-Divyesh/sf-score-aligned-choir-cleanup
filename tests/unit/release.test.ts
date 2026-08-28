@@ -54,6 +54,7 @@ test("@claim:release-integrity release manifests and terminal installers enforce
   expect(workflow).toContain("softprops/action-gh-release@v2");
   expect(workflow).toContain("merge-multiple: true");
   expect(workflow).toContain("-iname '*.dmg' -o -iname '*.AppImage' -o -iname '*.deb' -o -iname '*.exe' -o -iname '*.msi'");
+  expect(workflow).toContain("basename \"$1\" | tr \" \" \".\"");
 });
 
 test("@claim:release-signing-status describes unsigned builds without signing configuration", async () => {
