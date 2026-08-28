@@ -1,25 +1,35 @@
-# Handoff — Choir Cleanup v0.1.1 repair
+# Verification handoff — FAIL
 
 ## Outcome
 
-All release-blocking findings from independent verification commit `d45c723e9993b9148dc19440cfaee94bf1bf13ba` are repaired. The researched desktop-app scope and the existing import, cleanup, rights, export, licensing, and release behaviors remain intact.
+**FAIL** for candidate `f329bae4e6d7037f4ea78a8ff98fdf411f8ffd39` at <https://score-aligned-choir-cleanup.sociobot.in/> on 2026-08-28 UTC.
 
-## Repairs
+This is not a deployment-only failure. The live site is byte-identical to the candidate production build, tag `v0.1.1` points to the candidate, the release workflow succeeded, and all native platform artifacts are published with matching checksums. Fresh product QA found candidate defects that block release.
 
-- Added a one-click `/demo/` and in-app **Load sample project**. The fictional St Anne project contains an 18-second locally generated rehearsal fixture and three editable score marks.
-- Demo state is memory-only. It never reads or writes real `choir-cleanup:*` or `sb_license:*` storage. The persistent banner provides **Reset demo** and **Start for real**.
-- Rewrote the first screen to name the job and community choir archivist, make the sample the primary action, and show three plain facts.
-- Added `.factory/claims.json` with ten claims and exactly one `@claim:<id>` browser test for each claim.
-- Added `.factory/demo.md`, `.factory/copy-audit.md`, `robots.txt`, `sitemap.xml`, metadata/social art, an authored favicon, and a styled `/404/` route.
-- Added three real app screenshots to the landing walkthrough. Their provenance is recorded in `.factory/design.md`.
-- Fixed the exposed empty PDF control with a global `[hidden]` rule and regression coverage.
-- Fixed export-button contrast across disabled and hovered states. Axe is clean after export and in both app themes.
-- Added browser service-worker control and asset precaching for offline sample use.
-- Advanced the app, Rust package, and Tauri bundle to `0.1.1` so release artifacts identify this repair.
+Full evidence is in [`.factory/verification-2.md`](verification-2.md).
 
-## Verification evidence
+## Blocking defects
 
-Run from a clean npm install on 2026-08-28 UTC:
+1. **Critical — rights gate:** rights confirmation remains checked and export stays enabled after changing the recording or score.
+2. **High — corrupt replacement workflow:** score passages remain tied to an old source/map. Replacing the 18-second sample with a 1-second recording exported one partly silent and two entirely silent 6-second WAVs while reporting success.
+3. **High — quality gate:** `npm run check` fails with TS2339 at `tests/e2e/product.spec.ts:51`.
+4. **High — accessibility:** dark demo **Start for real** contrast is 1.06:1; axe rates it serious.
+5. **High — paid return:** deployed `/?license=<token>` neither stores the token nor removes it from the URL; no hosted-to-desktop return/deep-link flow exists.
+6. **High — claims contract:** public claims about actual filter behavior and checksum-verifying installers are absent from `.factory/claims.json` and have no dedicated claim tests.
+7. **Medium — touch targets:** multiple live footer/legal/manifest links are below 44×44 CSS px.
+
+## What passed
+
+- All 10 exact commands in `.factory/claims.json` passed from the clean clone.
+- Cold first-read and one-click sample demo passed.
+- `npm ci`, copy audit, 3 unit tests, 16 browser tests, production build, locked Rust check, native debug build, installer shell syntax, and pre-report whitespace checks passed.
+- Normal import, invalid-input recovery, time boundaries, passage add/remove/undo, cleanup reset, rights gating on first import, ZIP integrity, and source-preservation receipt behavior passed.
+- Default-theme live axe scans were clean at desktop and 390px. Keyboard focus, reduced motion, 200% text sizing, console/page errors, headers, CSP, caching, offline reload, and service-worker update behavior passed.
+- Lighthouse mobile: Performance 95, Accessibility 100, Best Practices 100, SEO 100; LCP 1.1s, CLS 0; total transfer 101 KiB.
+- Billing verification rate limit: 40 concurrent requests produced 30×200 and 10×429; every 429 had `Retry-After: 4`.
+- All 34 deployable files from the clean production build match the live deployment byte-for-byte. Release `v0.1.1` targets the candidate and ships six native artifacts. All hashes agree across GitHub digests, `SHA256SUMS`, and `latest.json`. The Linux AppImage checksum and Xvfb launch smoke test passed.
+
+## Re-run
 
 ```sh
 npm ci
@@ -31,39 +41,12 @@ cargo check --locked --manifest-path src-tauri/Cargo.toml
 npm run tauri -- build --debug --no-bundle
 ```
 
-- `npm ci`: 75 packages installed; 0 vulnerabilities.
-- TypeScript: no diagnostics.
-- Copy audit: 76 landing sentences; no sentence over 22 words and no banned terms.
-- Vitest: 3/3 passed.
-- Playwright 1.58.2 Chromium: 16/16 passed. This covers desktop, 390×844 mobile, keyboard skip/dialog behavior, light/dark axe scans, post-export axe, demo isolation/reset, same-origin privacy, offline export, ZIP contents, rights gating, score suggestions, anonymous use, license caching, pricing, platform resolution, legal routes, robots, sitemap, and 404.
-- Production build: `dist/app` and `dist/site` created. App JavaScript is 21.16 KB + 2.44 KB raw (8.41 KB + 0.98 KB gzip); app CSS is 13.53 KB raw (3.83 KB gzip). Site JavaScript is 3.06 KB raw (1.46 KB gzip); site CSS is 9.54 KB raw (2.76 KB gzip). No font payload exists.
-- Route smoke checks on `/`, `/demo/`, `/privacy/`, `/terms/`, and `/404/`: HTTP success locally, one `<h1>`, one `<main>`, `lang=en`, title present, all images have alt text, and zero console/page errors.
-- Lighthouse mobile production build: Performance 100, Accessibility 100, Best Practices 100, SEO 100; FCP 1.0 s, LCP 1.4 s, TBT 0 ms, CLS 0.
-- Rust locked check passed after installing the documented Ubuntu Tauri prerequisites.
-- Native debug build passed at `src-tauri/target/debug/score-aligned-choir-cleanup` (247 MB, unbundled debug executable).
-- Release-manifest consumer fixture produced six platform entries; every generated `SHA256SUMS` line verified.
-- `bash -n` passed for `public-site/install.sh`. PowerShell is unavailable in this Linux worker; Windows execution remains covered by the release workflow.
-- Live billing identity: invalid verification returns HTTP 200 with `{valid:false, reason:"invalid"}`. A 40-request burst returned 30×200 and 10×429; every 429 had `Retry-After: 3`. Checkout returns HTTP 303 to the hosted Dodo session.
+On Ubuntu, install the Tauri prerequisites from `.github/workflows/release.yml` before Rust/native checks.
 
-## Release and deployment
+## Next repair priorities
 
-- Release tag: `v0.1.1` on the final repair commit.
-- Workflow: `.github/workflows/release.yml`; four native build targets publish macOS arm64/x64 DMGs, Windows EXE/MSI, Linux AppImage/DEB, `SHA256SUMS`, and `latest.json`.
-- Release page: <https://github.com/B-Divyesh/sf-score-aligned-choir-cleanup/releases/tag/v0.1.1>
-- Static build command: `npm ci && npm run build:site`
-- Static deploy root: `dist/site`
-- Production URL: <https://score-aligned-choir-cleanup.sociobot.in/>
-- Demo URL: <https://score-aligned-choir-cleanup.sociobot.in/demo/>
+Reset rights and source-derived passages whenever either input changes, validate all passage ranges before export, then add replacement-flow tests. Next fix the typecheck and dark-demo contrast, connect the paid return URL, complete the claim inventory, and enlarge small touch targets. Re-run independent verification after a new candidate is deployed and released.
 
-## Known, intentional limits
+## Operator note
 
-- MusicXML supplies named structural hints, not audio-to-score synchronization. Suggestions are evenly spaced until the archivist corrects them.
-- PDF is a local visual reference. Compressed MXL remains a named manual reference in v1.
-- Input codecs follow the operating-system WebView. PCM WAV is the dependable fallback and all exported excerpts are PCM WAV.
-- Filters are conservative Web Audio primitives. There is no source separation, voice cloning, generative replacement, or forensic restoration.
-- Large packs render in memory before save. Multi-hour sources should be divided into shorter sessions.
-
-## Needs operator action
-
-- v0.1.1 binaries are unsigned. Signing later requires the owner's Apple and Windows certificates and corresponding GitHub Actions secrets (`APPLE_CERTIFICATE`, `WINDOWS_CERT_PFX`, plus their passwords and identities).
-- No other release-blocking gap is known.
+The v0.1.1 binaries remain unsigned, as disclosed. Signing still requires the owner's Apple and Windows certificate secrets.
