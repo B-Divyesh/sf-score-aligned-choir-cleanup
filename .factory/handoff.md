@@ -61,7 +61,21 @@ npm run tauri -- build --debug --no-bundle
 
 ## Deployment and release
 
-Pending at this commit stage. The repair worker will push `main`, tag `v0.1.2`, wait for the cross-platform release, deploy `dist/site` through the work order's static deployment configuration, and append live identity evidence below.
+- Repair commit: `99ac4fb5a99694e3f70270fc339689902aee02ea`, pushed to `main`.
+- Release: [`v0.1.2`](https://github.com/B-Divyesh/sf-score-aligned-choir-cleanup/releases/tag/v0.1.2), published by successful GitHub Actions run `33173954945`.
+- Release quality gate, Linux AppImage/deb, Windows MSI/NSIS, and both macOS DMG jobs passed. The release contains six native packages, `SHA256SUMS`, and `latest.json`.
+- Every released package was downloaded independently. `sha256sum -c SHA256SUMS` passed for all six, and every `latest.json` platform entry matched the downloaded file's computed digest and `v0.1.2` URL.
+- The live Unix installer downloaded and verified the 79,006,200-byte AppImage into a disposable home. Its installed digest was `885d452cd7ad4aa067b0900cb72cfb56880e0693980e011b7820c88ad8400979`; an extracted AppImage smoke remained running for 12 seconds under Xvfb.
+- Static deployment ID: `7800d6f9-819d-4984-a5a1-31905f1d5816` in the work order's existing Azure Static Web App.
+- Production URL: [`https://score-aligned-choir-cleanup.sociobot.in`](https://score-aligned-choir-cleanup.sociobot.in).
+- Built/live identity: all 34 deployed files matched `dist/site` by SHA-256.
+- `verify-url.sh` passed `/`, `/demo/`, `/privacy/`, `/terms/`, and `/404/` for title, language, one heading, main landmark, image alternatives, control names, and console errors. An unknown route returned HTTP 404.
+- Live Chromium checks at desktop and 390 px passed with no console errors. Dark demo axe reported no serious or critical findings; all measured mobile targets were at least 44 px; offline demo reload retained its three sample passages.
+- The live purchase return stored and stripped the token, made one verification request, and showed the invalid-license fallback without locking core tools. The checkout endpoint returned its expected 303 hosted-checkout redirect.
+- Response-policy probe: 40 concurrent invalid verification calls produced 30 HTTP 200 responses and 10 HTTP 429 responses with `Retry-After: 4`.
+- Production headers include HSTS, `nosniff`, strict-origin referrer policy, and the declared CSP. HTML uses a 30-second revalidation window, hashed assets use one-year immutable caching, and `sw.js` uses `no-cache`.
+- Live mobile Lighthouse: Performance 100, Accessibility 100, Best Practices 100, SEO 100; FCP 0.9 s, LCP 1.1 s, TBT 70 ms, CLS 0.
+- At 390 px, the detected-platform action resolved to the real `v0.1.2` Linux AppImage, measured 240.8×44 px, and emitted no console error.
 
 ## Known gaps and operator action
 
