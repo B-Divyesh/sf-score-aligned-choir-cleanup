@@ -58,6 +58,30 @@ async function exportFirstWav(page: import("@playwright/test").Page) {
   const wavs = await exportWavs(page); expect(wavs.length).toBeGreaterThan(0); return wavs[0];
 }
 
+function rgbChannels(color: string): [number, number, number] {
+  const channels = color.match(/\d+(?:\.\d+)?/g)?.slice(0, 3).map(Number);
+  expect(channels, `expected an rgb color, received ${color}`).toHaveLength(3);
+  return channels as [number, number, number];
+}
+
+function relativeLuminance(color: [number, number, number]) {
+  const linear = color.map((channel) => {
+    const normalized = channel / 255;
+    return normalized <= .04045 ? normalized / 12.92 : ((normalized + .055) / 1.055) ** 2.4;
+  });
+  return .2126 * linear[0] + .7152 * linear[1] + .0722 * linear[2];
+}
+
+function contrastRatio(foreground: string, background: string) {
+  const [lighter, darker] = [relativeLuminance(rgbChannels(foreground)), relativeLuminance(rgbChannels(background))].sort((a, b) => b - a);
+  return (lighter + .05) / (darker + .05);
+}
+
+async function expectNoSeriousAxeFindings(page: import("@playwright/test").Page) {
+  const results = await new AxeBuilder({ page }).analyze();
+  expect(results.violations.filter((item) => ["serious", "critical"].includes(item.impact || ""))).toEqual([]);
+}
+
 test("desktop workbench completes a local rehearsal pack", async ({ page }) => {
   await page.goto("http://127.0.0.1:1420");
   await expect(page.locator("h1")).toHaveCount(1);
@@ -107,6 +131,23 @@ test("landing and populated demo remain usable at 390px", async ({ page }) => {
   await page.locator("#theme").click();
   const darkResults = await new AxeBuilder({ page }).analyze();
   expect(darkResults.violations.filter((item) => ["serious", "critical"].includes(item.impact || ""))).toEqual([]);
+});
+
+test("populated demo banner keeps its descriptive text at WCAG contrast in both themes and viewports", async ({ page }) => {
+  for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
+    await page.setViewportSize(viewport);
+    await page.goto("http://127.0.0.1:4173/demo/");
+    await expect(page.locator("#demo-banner")).toBeVisible();
+    for (const theme of ["light", "dark"] as const) {
+      if (theme === "dark") await page.locator("#theme").click();
+      const colors = await page.locator(".demo-banner > span").evaluate((span) => ({
+        foreground: getComputedStyle(span).color,
+        background: getComputedStyle(span.parentElement!).backgroundColor,
+      }));
+      expect(contrastRatio(colors.foreground, colors.background), `${theme} demo banner at ${viewport.width}px`).toBeGreaterThanOrEqual(4.5);
+      await expectNoSeriousAxeFindings(page);
+    }
+  }
 });
 
 test("@claim:source-change-safety source replacement respaces score passages and requires renewed rights confirmation", async ({ page }) => {

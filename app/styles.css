@@ -7,4 +7,4 @@
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}button:active,.button-link:active{transform:none}}
 .primary:hover{background:var(--blue-deep);color:var(--sheet)}.primary:disabled:hover{background:var(--sheet);color:var(--muted)}.brand{display:inline-flex;align-items:center;min-height:44px}
 .demo-banner button{background:#f3efe3;color:#102f3d;border-color:#f3efe3}.demo-banner .quiet{background:transparent;color:var(--sheet);border-color:var(--sheet)}
-footer a,.license-panel small a{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px}
+footer a,.license-panel small a{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px}.demo-banner>span{color:var(--sheet)}
