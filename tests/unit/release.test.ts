@@ -53,6 +53,7 @@ test("@claim:release-integrity release manifests and terminal installers enforce
   expect(workflow).toContain("actions/download-artifact@v4");
   expect(workflow).toContain("softprops/action-gh-release@v2");
   expect(workflow).toContain("merge-multiple: true");
+  expect(workflow).toContain("find release-bundles -type f -exec cp {} release-assets/");
 });
 
 test("@claim:release-signing-status describes unsigned builds without signing configuration", async () => {

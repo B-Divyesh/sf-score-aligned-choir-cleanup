@@ -80,8 +80,12 @@ jobs:
       - name: Download built assets
         uses: actions/download-artifact@v4
         with:
-          path: release-assets
+          path: release-bundles
           merge-multiple: true
+      - name: Flatten platform bundles
+        run: |
+          mkdir release-assets
+          find release-bundles -type f -exec cp {} release-assets/ \;
       - name: Create checksums and latest manifest
         run: node scripts/create-release-manifest.mjs "$RELEASE_TAG" "https://github.com/${GITHUB_REPOSITORY}/releases/download/${RELEASE_TAG}" release-assets
       - name: Publish release
