@@ -260,7 +260,7 @@ test("every public route uses the same navigation and complete metadata", async 
     await expect(page.locator('nav[aria-label="Primary"] a')).toHaveText(["Demo", "Method", "License", "Privacy"]);
     await expect(page.locator('nav[aria-label="Primary"] a')).toHaveCount(4);
     for (const link of await page.locator('nav[aria-label="Primary"] a').all()) await expect(link).toBeVisible();
-    await expect(page.locator("footer")).toContainText("Built by Param Factory · v0.1.7");
+    await expect(page.locator("footer")).toContainText("Built by Param Factory · v0.1.8");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
     const axe = await new AxeBuilder({ page }).analyze();
     expect(axe.violations, `${path} has axe violations`).toEqual([]);

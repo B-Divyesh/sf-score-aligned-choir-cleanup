@@ -47,6 +47,12 @@ test("@claim:release-integrity release manifests and terminal installers enforce
   const powershell = await readFile(resolve("public-site/install.ps1"), "utf8");
   expect(powershell).toContain("Get-FileHash -Algorithm SHA256");
   expect(powershell).toMatch(/if \(\$actual -ne \$asset\.sha256\.ToLowerInvariant\(\)\).*Remove-Item.*throw "Checksum verification failed; nothing was installed\."/s);
+
+  const workflow = await readFile(resolve(".github/workflows/release.yml"), "utf8");
+  expect(workflow).toContain("actions/upload-artifact@v4");
+  expect(workflow).toContain("actions/download-artifact@v4");
+  expect(workflow).toContain("softprops/action-gh-release@v2");
+  expect(workflow).toContain("merge-multiple: true");
 });
 
 test("@claim:release-signing-status describes unsigned builds without signing configuration", async () => {
