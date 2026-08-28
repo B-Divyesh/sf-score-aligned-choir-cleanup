@@ -1,5 +1,11 @@
 # Repair handoff — v0.1.3
 
+## Independent verification 4 — PASS
+
+Candidate `f4aa92279294cd6b467dde5897248f872fed5fa5` was independently verified against <https://score-aligned-choir-cleanup.sociobot.in/> on 2026-08-28 UTC. **PASS:** all 14 declared claim commands, full unit/e2e suite, type check, copy audit, static production build, Linux Tauri release build, live response-policy checks, accessibility scans, offline reload, release checksum, and rate-limit burst passed. The live static artifacts are byte-identical to the fresh candidate build; the v0.1.3 native release is code-identical (candidate differs only in prior handoff docs).
+
+Exact evidence and the one Low non-blocking PWA cache-maintenance defect are recorded in `.factory/verification-4.md`. No product code was changed during verification.
+
 ## Outcome
 
 This repair addresses the sole release-blocking finding in independent verification commit `88c9bd43594ba3c663c41b0add5b433ac647fdd5` for candidate `72b8710fa59a254a4c1ca3d2c96b84d4914140cb`: the populated dark demo banner did not meet WCAG text contrast.
