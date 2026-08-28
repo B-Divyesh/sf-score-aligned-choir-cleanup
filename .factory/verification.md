@@ -27,6 +27,7 @@
 | `npm test` | PASS | 3 Vitest unit tests and 4 Chromium Playwright tests passed. |
 | `npm run build` | PASS | Created `dist/app` and `dist/site`. App JS: 17.81 kB + 2.44 kB (7.32 + 0.98 kB gzip); app CSS: 12.49 kB; site JS: 3.06 kB (1.46 kB gzip); site CSS: 8.00 kB (2.44 kB gzip). |
 | `cargo check --locked --manifest-path src-tauri/Cargo.toml` | PASS | Passed after installing the documented Linux Tauri system prerequisites. |
+| `npm run tauri -- build --debug --no-bundle` | PASS | Native debug executable produced at `src-tauri/target/debug/score-aligned-choir-cleanup` (258,719,176 bytes). |
 | `bash -n public-site/install.sh` / `git diff --check` | PASS | No syntax or whitespace errors. |
 
 ## Product exercise
