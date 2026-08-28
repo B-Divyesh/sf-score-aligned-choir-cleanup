@@ -42,6 +42,34 @@
     "sandbox": "open /demo/ and assert its three named score suggestions and editable time fields"
   },
   {
+    "id": "score-reference-import",
+    "claim": "MusicXML score marks become suggestions and PDF score references stay attached",
+    "where": "landing method, app source step, README",
+    "test": "npm run test:e2e -- --grep @claim:score-reference-import",
+    "sandbox": "clean workbench; import MusicXML and PDF fixtures; assert suggestions and the PDF reference control"
+  },
+  {
+    "id": "pcm-wav-import",
+    "claim": "Imports PCM WAV recordings",
+    "where": "landing method, app source step, README",
+    "test": "npm run test:e2e -- --grep @claim:pcm-wav-import",
+    "sandbox": "clean workbench; import a generated PCM WAV and assert decoded source details"
+  },
+  {
+    "id": "passage-marking-inputs",
+    "claim": "Mark passages with a pointer, arrow keys, or exact time fields",
+    "where": "app passages step, README",
+    "test": "npm run test:e2e -- --grep @claim:passage-marking-inputs",
+    "sandbox": "clean demo; drag the waveform, use ArrowRight, then add a named exact-time passage"
+  },
+  {
+    "id": "source-revision-audition",
+    "claim": "Preview the source or cleaned copy before export",
+    "where": "landing method, app transport, README",
+    "test": "npm run test:e2e -- --grep @claim:source-revision-audition",
+    "sandbox": "clean demo; activate both preview controls and assert the transport updates"
+  },
+  {
     "id": "cleanup-filters",
     "claim": "Exported cleanup changes the signal for rumble, presence, dynamics, hum, and hiss",
     "where": "landing scope, app cleanup controls, README",
@@ -89,6 +117,27 @@
     "where": "privacy, README",
     "test": "npm run test:e2e -- --grep @claim:license-verification-cache",
     "sandbox": "preseed a current verified verdict, open the real app, assert Steward access and no verification request"
+  },
+  {
+    "id": "license-request-minimization",
+    "claim": "License verification sends the license token to the license service",
+    "where": "privacy page",
+    "test": "npm run test:e2e -- --grep @claim:license-request-minimization",
+    "sandbox": "forced clean verification; intercept the request and assert its URL contains only the token parameter"
+  },
+  {
+    "id": "release-signing-status",
+    "claim": "Current desktop builds are unsigned",
+    "where": "landing downloads, README",
+    "test": "npm run test:unit -- --testNamePattern @claim:release-signing-status",
+    "sandbox": "inspect workflow signing configuration and the published install warning"
+  },
+  {
+    "id": "no-generative-restoration",
+    "claim": "There are no controls for voice cloning, missing-sound reconstruction, or SATB isolation",
+    "where": "landing scope section, app cleanup scope",
+    "test": "npm run test:unit -- --testNamePattern @claim:no-generative-restoration",
+    "sandbox": "inspect shipped source dependencies and controls for only documented local filters"
   },
   {
     "id": "tracker-free-site",

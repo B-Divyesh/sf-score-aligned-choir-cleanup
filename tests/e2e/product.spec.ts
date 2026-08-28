@@ -236,6 +236,15 @@ test("legal pages are directly addressable", async ({ page }) => {
   await expect(page.locator("main h1")).toHaveText("This score mark has no page");
 });
 
+test("route loads move focus to the route heading", async ({ page }) => {
+  await page.goto("http://127.0.0.1:4173/");
+  await expect(page.locator("main h1")).toBeFocused();
+  await page.getByRole("link", { name: "Try it with sample data" }).click();
+  await expect(page.locator("#app-title")).toBeFocused();
+  await page.goBack();
+  await expect(page.locator("main h1")).toBeFocused();
+});
+
 test("@claim:demo-isolation sample data never reads or writes real project state", async ({ page }) => {
   await page.addInitScript(() => {
     localStorage.setItem("choir-cleanup:project", JSON.stringify({ project: "REAL ARCHIVE", preparedBy: "Real person", notes: "private" }));
@@ -247,14 +256,79 @@ test("@claim:demo-isolation sample data never reads or writes real project state
   await expect(page.locator("#project-name")).toHaveValue("St Anne autumn concert");
   await expect(page.locator("html")).not.toHaveAttribute("data-theme", "dark");
   await page.locator("#project-name").fill("Temporary demo edit");
+  await page.locator('input[value="clarity"]').check();
+  await page.locator("#hum").check();
+  await page.locator("#theme").click();
+  await page.locator("#rights").check();
   await page.locator("#reset-demo").click();
   await expect(page.locator("#project-name")).toHaveValue("St Anne autumn concert");
+  await expect(page.locator('input[value="archive"]')).toBeChecked();
+  await expect(page.locator("#hum")).not.toBeChecked();
+  await expect(page.locator("#rights")).not.toBeChecked();
+  await expect(page.locator("html")).not.toHaveAttribute("data-theme", "dark");
+  await expect(page.locator("#passage-list li")).toHaveCount(3);
   const stored = await page.evaluate(() => ({
     project: localStorage.getItem("choir-cleanup:project"),
     theme: localStorage.getItem("choir-cleanup:theme"),
     license: localStorage.getItem("sb_license:score-aligned-choir-cleanup"),
   }));
   expect(stored).toEqual({ project: JSON.stringify({ project: "REAL ARCHIVE", preparedBy: "Real person", notes: "private" }), theme: "dark", license: "real-license" });
+});
+
+test("demo query opens the isolated sample route", async ({ page }) => {
+  await page.goto("http://127.0.0.1:4173/?demo=1");
+  await expect(page).toHaveURL(/\/demo\/\?demo=1/);
+  await expect(page.locator("#demo-banner")).toBeVisible();
+});
+
+test("@claim:pcm-wav-import imports a PCM WAV recording", async ({ page }) => {
+  await page.goto("http://127.0.0.1:1420/");
+  await page.locator("#audio-file").setInputFiles({ name: "archive.wav", mimeType: "audio/wav", buffer: wav(2) });
+  await expect(page.locator("#audio-meta")).toContainText("archive.wav");
+  await expect(page.locator("#audio-meta")).toContainText(/Hz · 1 ch/);
+});
+
+test("@claim:score-reference-import imports MusicXML marks and a PDF score reference", async ({ page }) => {
+  await page.goto("http://127.0.0.1:1420/");
+  await page.locator("#audio-file").setInputFiles({ name: "archive.wav", mimeType: "audio/wav", buffer: wav(2) });
+  await page.locator("#score-file").setInputFiles({ name: "score.musicxml", mimeType: "application/xml", buffer: Buffer.from("<score-partwise><direction><direction-type><rehearsal>Verse</rehearsal></direction-type></direction></score-partwise>") });
+  await expect(page.locator("#passage-list")).toContainText("Verse");
+  await page.locator("#score-file").setInputFiles({ name: "reference.pdf", mimeType: "application/pdf", buffer: Buffer.from("%PDF-1.4\n%%EOF") });
+  await expect(page.locator("#view-score")).toBeVisible();
+});
+
+test("@claim:passage-marking-inputs supports pointer, keyboard, and exact times", async ({ page }) => {
+  await page.goto("http://127.0.0.1:4173/demo/");
+  const wave = page.locator("#waveform");
+  const box = await wave.boundingBox(); expect(box).not.toBeNull();
+  await page.mouse.move(box!.x + 10, box!.y + 30); await page.mouse.down(); await page.mouse.move(box!.x + box!.width / 2, box!.y + 30); await page.mouse.up();
+  const before = await page.locator("#passage-end").inputValue();
+  await wave.focus(); await page.keyboard.press("ArrowRight");
+  expect(await page.locator("#passage-end").inputValue()).not.toBe(before);
+  await page.locator("#passage-name").fill("Exact entrance"); await page.locator("#passage-start").fill("0:01.0"); await page.locator("#passage-end").fill("0:02.0"); await page.locator("#passage-form button").click();
+  await expect(page.locator("#passage-list")).toContainText("Exact entrance");
+});
+
+test("@claim:source-revision-audition previews the source and cleaned copy", async ({ page }) => {
+  await page.goto("http://127.0.0.1:4173/demo/");
+  await page.locator("#play-original").click();
+  await expect(page.locator("#play-time")).not.toHaveText("0:00.0 / 0:00.0");
+  await page.locator("#stop").click();
+  await page.locator("#play-clean").click();
+  await expect(page.locator("#play-time")).not.toHaveText("0:00.0 / 0:00.0");
+});
+
+test("@claim:license-request-minimization sends only a license query parameter", async ({ page }) => {
+  let received = "";
+  await page.route("https://api.sociobot.in/api/v1/products/score-aligned-choir-cleanup/verify**", async (route) => {
+    received = route.request().url();
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ valid: false, reason: "invalid" }) });
+  });
+  await page.goto("http://127.0.0.1:1420/");
+  await page.locator(".license-panel summary").click();
+  await page.locator("#license-input").fill("token-only"); await page.locator("#license-restore").click();
+  await expect(page.locator("#license-message")).toContainText("License no longer active");
+  const url = new URL(received); expect([...url.searchParams]).toEqual([["license", "token-only"]]);
 });
 
 test("@claim:on-device-audio sample cleanup makes no cross-origin request", async ({ page }) => {

@@ -53,8 +53,8 @@ function clearProject() {
   scoreInput.value = "";
   $("#audio-drop").classList.remove("has-file");
   $("#score-drop").classList.remove("has-file");
-  $("#audio-meta").textContent = "Choose a supported recording";
-  $("#score-meta").textContent = "MusicXML, XML, MXL, or PDF";
+  $("#audio-meta").textContent = "Choose a PCM WAV recording";
+  $("#score-meta").textContent = "MusicXML or PDF";
   $("#empty-wave").hidden = false;
   $("#wave-area").hidden = true;
   $("#view-score").hidden = true;
@@ -73,6 +73,9 @@ function loadSampleProject() {
   demoMode = true;
   document.title = "Demo — Choir Cleanup";
   $("#demo-banner").hidden = false;
+  document.documentElement.dataset.theme = "light";
+  (document.querySelector('input[value="archive"]') as HTMLInputElement).checked = true;
+  ($("#hum") as HTMLInputElement).checked = false;
   passages.splice(0);
   removed = null;
   audioBuffer = makeSampleAudio();
@@ -96,6 +99,7 @@ function loadSampleProject() {
   syncSelection();
   drawWaveform();
   updateReceipt();
+  setStatus("Confirm sample recording rights to enable export.");
   $("#sources").scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
 }
 
@@ -316,15 +320,16 @@ const savedTheme = demoMode ? null : localStorage.getItem(REAL_THEME_KEY); if (s
 $("#theme").addEventListener("click", () => { const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark"; document.documentElement.dataset.theme = next; if (!demoMode) localStorage.setItem(REAL_THEME_KEY, next); drawWaveform(); });
 if (!demoMode) try { const project = JSON.parse(localStorage.getItem(REAL_PROJECT_KEY) || "null"); if (project) { ( $("#project-name") as HTMLInputElement).value = project.project || "Choir rehearsal pack"; ( $("#prepared-by") as HTMLInputElement).value = project.preparedBy || ""; ( $("#archive-notes") as HTMLInputElement).value = project.notes || ""; } } catch {}
 syncSelection(); renderPassages();
-if (demoMode) loadSampleProject();
+if (demoMode) {
+  loadSampleProject();
+  window.setTimeout(() => $("#app-title").focus({ preventScroll: true }), 0);
+}
 
 async function prepareOfflineDemo() {
   if (!demoMode || location.protocol === "tauri:" || !("serviceWorker" in navigator) || !("caches" in window)) return;
   try {
     await navigator.serviceWorker.register("/sw.js");
     await navigator.serviceWorker.ready;
-    const urls = [location.pathname, ...[...document.querySelectorAll<HTMLScriptElement | HTMLLinkElement>('script[src],link[rel="stylesheet"]')].map((node) => node instanceof HTMLScriptElement ? node.src : node.href)];
-    await (await caches.open("choir-cleanup-site-v1.2.0")).addAll(urls);
     if (!navigator.serviceWorker.controller) await new Promise<void>((resolve, reject) => {
       const timer = window.setTimeout(() => reject(new Error("Service worker did not take control")), 5000);
       navigator.serviceWorker.addEventListener("controllerchange", () => { clearTimeout(timer); resolve(); }, { once: true });

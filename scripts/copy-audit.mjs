@@ -1,6 +1,5 @@
 import { readFile, writeFile } from "node:fs/promises";
 
-const html = await readFile("site/index.html", "utf8");
 const decode = (value) => value
   .replace(/<[^>]+>/g, " ")
   .replace(/&mdash;|&#8212;/g, "—")
@@ -10,21 +9,30 @@ const decode = (value) => value
   .replace(/\s+/g, " ")
   .trim();
 
-const blocks = [...html.matchAll(/<(?:h1|h2|h3|p|li|a|button)(?:\s[^>]*)?>([\s\S]*?)<\/(?:h1|h2|h3|p|li|a|button)>/gi)]
-  .map((match) => decode(match[1]))
-  .filter(Boolean);
-const sentences = [...new Set(blocks.flatMap((block) => block.match(/[^.!?]+[.!?]?/g) || []).map((sentence) => sentence.trim()).filter(Boolean))];
+const pages = ["site/index.html", "site/privacy/index.html", "site/terms/index.html", "site/404/index.html", "app/index.html", "README.md"];
+const source = await Promise.all(pages.map(async (file) => ({ file, content: await readFile(file, "utf8") })));
+const blocks = source.flatMap(({ file, content }) => {
+  if (file.endsWith(".md")) return content.split(/\n+/).filter((line) => /[A-Za-z]/.test(line) && !line.startsWith("```"))
+    .map((line) => ({ file, value: decode(line.replace(/^[-#*]\s*/, "").replace(/`/g, "")) }));
+  const text = content;
+  const elements = [...text.matchAll(/<(?:h1|h2|h3|p|li|a|button|small|figcaption)(?:\s[^>]*)?>([\s\S]*?)<\/(?:h1|h2|h3|p|li|a|button|small|figcaption)>/gi)].map((match) => decode(match[1]));
+  const attributes = [...text.matchAll(/(?:alt|aria-label)="([^"]+)"/gi)].map((match) => decode(match[1]));
+  return [...elements, ...attributes].filter(Boolean).map((value) => ({ file, value }));
+});
+const split = (block) => block.replace(/\b(v?\d+(?:\.\d+){1,3}|\.(?:dmg|exe|msi|zip|wav|json|xml|pdf))\b/gi, (value) => value.replaceAll(".", "§"))
+  .split(/(?<=[.!?])\s+/).map((value) => value.replaceAll("§", ".").trim()).filter(Boolean);
+const sentences = [...new Map(blocks.flatMap(({ file, value }) => split(value).map((sentence) => [`${file}:${sentence}`, { file, sentence }]))).values()];
 const banned = /\b(?:leverage|seamless|effortless|robust|powerful|intuitive|reimagine|supercharge|delightful|journey|ecosystem|AI-powered)\b/i;
-const rows = sentences.map((sentence) => ({ sentence, words: sentence.match(/[\p{L}\p{N}$][\p{L}\p{N}$'’.-]*/gu)?.length || 0 }));
+const rows = sentences.map(({ file, sentence }) => ({ file, sentence, words: sentence.match(/[\p{L}\p{N}$][\p{L}\p{N}$'’.-]*/gu)?.length || 0 }));
 const flags = rows.filter(({ sentence, words }) => words > 22 || banned.test(sentence));
 const markdown = [
   "# Landing copy audit",
   "",
-  "Generated from `site/index.html`. The hard limit is 22 words per sentence.",
+  "Generated from all public routes, app copy, image alternatives, and `README.md`. The hard limit is 22 words per sentence.",
   "",
-  "| Words | Sentence |",
-  "|---:|---|",
-  ...rows.map(({ sentence, words }) => `| ${words} | ${sentence.replace(/\|/g, "\\|")} |`),
+  "| Source | Words | Sentence |",
+  "|---|---:|---|",
+  ...rows.map(({ file, sentence, words }) => `| ${file} | ${words} | ${sentence.replace(/\|/g, "\\|")} |`),
   "",
   "## Flags",
   "",

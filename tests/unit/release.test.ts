@@ -46,3 +46,28 @@ test("@claim:release-integrity release manifests and terminal installers enforce
   expect(powershell).toContain("Get-FileHash -Algorithm SHA256");
   expect(powershell).toMatch(/if \(\$actual -ne \$asset\.sha256\.ToLowerInvariant\(\)\).*Remove-Item.*throw "Checksum verification failed; nothing was installed\."/s);
 });
+
+test("@claim:release-signing-status describes unsigned builds without signing configuration", async () => {
+  const [workflow, landing] = await Promise.all([
+    readFile(resolve(".github/workflows/release.yml"), "utf8"),
+    readFile(resolve("site/index.html"), "utf8"),
+  ]);
+  expect(landing).toContain("Builds are unsigned.");
+  expect(workflow).not.toMatch(/APPLE_CERTIFICATE|WINDOWS_CERT_PFX|tauri\.conf\.json.*sign/i);
+});
+
+test("@claim:no-generative-restoration ships only local filter controls", async () => {
+  const [app, pkg] = await Promise.all([readFile(resolve("app/main.ts"), "utf8"), readFile(resolve("package.json"), "utf8")]);
+  expect(app).toContain('new OfflineAudioContext');
+  expect(app).not.toMatch(/azure|openai|responses|voice.?clone|separat/i);
+  expect(pkg).not.toMatch(/openai|azure|tensorflow|onnx/i);
+});
+
+test("public build labels use the package version", async () => {
+  const [pkg, app, landing, privacy, terms, notFound] = await Promise.all([
+    readFile(resolve("package.json"), "utf8"), readFile(resolve("app/index.html"), "utf8"), readFile(resolve("site/index.html"), "utf8"),
+    readFile(resolve("site/privacy/index.html"), "utf8"), readFile(resolve("site/terms/index.html"), "utf8"), readFile(resolve("site/404/index.html"), "utf8"),
+  ]);
+  const version = JSON.parse(pkg).version;
+  for (const source of [app, landing, privacy, terms, notFound]) expect(source).toContain(`v${version}`);
+});

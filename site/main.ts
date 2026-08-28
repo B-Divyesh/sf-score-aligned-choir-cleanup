@@ -6,6 +6,8 @@ const LICENSE_KEY = "sb_license:score-aligned-choir-cleanup";
 type Asset = { label: string; url: string; sha256: string };
 type Manifest = { version: string; platforms: Record<string, Asset | undefined> };
 
+if (new URL(location.href).searchParams.get("demo") === "1") location.replace("/demo/?demo=1");
+
 async function releaseManifest(): Promise<Manifest> {
   const response = await fetch(RELEASE_API, { cache: "no-store", headers: { Accept: "application/vnd.github+json" } });
   if (!response.ok) throw new Error("No published release");
@@ -41,8 +43,8 @@ async function loadDownloads() {
     const mapping: Record<string, string> = { "mac-arm64": "mac-arm", "mac-intel": "mac-intel", windows: "windows", "linux-appimage": "linux" };
     for (const [key, id] of Object.entries(mapping)) { const asset = manifest.platforms[key]; if (asset) document.querySelector<HTMLAnchorElement>(`#${id}`)!.href = asset.url; }
     const key = await platformKey(); const asset = manifest.platforms[key];
-    if (asset) { primary.href = asset.url; primary.textContent = `Download ${asset.label}`; repeat.href = asset.url; repeat.textContent = `Download ${asset.label}`; note.textContent = `Version ${manifest.version} · unsigned build · SHA256 published`; }
-    else note.textContent = `Version ${manifest.version} · choose a platform below`;
+    if (asset) { primary.href = asset.url; primary.textContent = `Download ${asset.label}`; repeat.href = asset.url; repeat.textContent = `Latest desktop download · unsigned build · SHA256 published`; }
+    else note.textContent = "Choose a platform below.";
   } catch { primary.href = RELEASE; repeat.href = RELEASE; note.textContent = navigator.onLine ? "Release downloads are being prepared. View the release page." : "You’re offline. Reconnect to download; the installed app itself works offline."; }
 }
 

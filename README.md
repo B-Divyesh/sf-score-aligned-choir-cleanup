@@ -2,9 +2,9 @@
 
 Choir Cleanup makes documented rehearsal copies from choir archive recordings. It is for community choir archivists working from audio and a score.
 
-Try the isolated sample: <https://score-aligned-choir-cleanup.sociobot.in/demo/>. It loads an 18-second St Anne Community Choir rehearsal with three editable score marks. Sample changes never enter real project storage.
+Try the sample project: <https://score-aligned-choir-cleanup.sociobot.in/demo/>. It loads an 18-second St Anne Community Choir rehearsal with three editable score marks. Sample changes never enter real project storage.
 
-The desktop app combines a recording with MusicXML marks or a PDF reference. It applies conservative filters and exports labeled PCM WAV excerpts, a manifest, and an edit receipt. The app never overwrites the source. Audio processing stays on the device.
+The desktop app combines a PCM WAV recording with MusicXML score marks or a PDF score reference. It exports labeled WAV excerpts, a file list, and an edit receipt. The app never overwrites the source. Audio processing stays on the device.
 
 It is not a voice separator, forensic restoration tool, or replacement for an engineer.
 
@@ -12,14 +12,14 @@ Live site: <https://score-aligned-choir-cleanup.sociobot.in>
 
 ## What v1 includes
 
-- Local audio decode and waveform drawing for formats supported by the operating system WebView.
-- MusicXML title/rehearsal-mark extraction; PDF and compressed MXL files remain attached as manual references.
-- Pointer, keyboard, and exact-timecode passage marking.
-- Source/revision audition with archive-gentle, section-clarity, hiss-restraint, and optional 50/60 Hz hum filters.
+- Imports PCM WAV recordings.
+- MusicXML files provide titles and score marks. PDF files stay attached for reference.
+- Mark passages with a pointer, arrow keys, or exact time fields.
+- Preview the source or cleaned copy with Archive gentle, Section clarity, Hiss restraint, and optional hum filters.
 - Rights confirmation before export.
-- A ZIP containing 16-bit PCM WAV excerpts, `EDIT-RECEIPT.txt`, and `pack-manifest.json`.
+- A download folder containing uncompressed WAV excerpts, an edit receipt, and a file list.
 - Free complete workflow; optional $39 one-time Steward license for reusable archive notes and named receipt sign-off.
-- Local license caching with at-most-daily verification through Sociobot billing.
+- Recent license checks are reused for one day.
 - A one-click sample project with separate, memory-only demo state.
 
 ## Develop and test
@@ -50,12 +50,12 @@ It produces `dist/site/index.html` plus `/demo/`, `/privacy/`, `/terms/`, and `/
 Push a `v*` tag or run **Release desktop apps** manually in GitHub Actions. The matrix builds:
 
 - macOS `.dmg` for Apple silicon and Intel;
-- Windows `.exe` (NSIS) and `.msi`;
+- Windows `.exe` and `.msi` installers;
 - Linux `.AppImage` and `.deb`.
 
-The workflow drafts one GitHub Release, attaches every bundle, creates `SHA256SUMS` and `latest.json`, validates that all required platforms are represented, and then publishes it. Builds are unsigned until the repository owner provides platform signing credentials.
+Release maintainers use the workflow to build and publish the platform bundles. Builds are unsigned until the repository owner provides platform signing credentials.
 
-The landing page detects the visitor’s operating system from GitHub’s public release metadata (mirrored in the release `latest.json`). Terminal installers read `latest.json` directly and independently verify SHA256 before installation:
+The download section lists each supported platform. Terminal installers read `latest.json` directly and check the downloaded file against its published SHA-256 fingerprint before installation:
 
 ```sh
 curl -fsSL https://score-aligned-choir-cleanup.sociobot.in/install.sh | sh
@@ -67,7 +67,7 @@ irm https://score-aligned-choir-cleanup.sociobot.in/install.ps1 | iex
 
 ## Privacy and data
 
-Audio processing uses browser/WebView audio APIs entirely on the current device. Local storage holds only UI preferences, pack metadata fields, and an optional license token/verdict. License verification sends only the token to `api.sociobot.in`. There are no analytics, remote fonts, advertising, or runtime CDNs. See [`site/privacy/index.html`](site/privacy/index.html).
+Audio processing uses browser/WebView audio APIs entirely on the current device. There are no analytics, remote fonts, advertising, or runtime CDNs. See [`site/privacy/index.html`](site/privacy/index.html).
 
 Demo mode does not read or write those real-data keys. Reset rebuilds the bundled sample in memory. See [`.factory/demo.md`](.factory/demo.md) and the tested claim inventory in [`.factory/claims.json`](.factory/claims.json).
 
