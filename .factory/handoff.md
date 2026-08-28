@@ -17,6 +17,7 @@ Every finding in `.factory/review-1.md` and prior verification records is repair
 - Playwright axe checks are clean for empty/working app, post-export app, landing, legal, and populated light/dark demo at 390 and 1440.
 - Lighthouse local mobile-equivalent run: Performance 100, Accessibility 100, Best Practices 100, SEO 100. JSON: `/tmp/choir-lighthouse.json`.
 - Screenshot evidence: `test-results/polish-1/landing-1440.png`; `test-results/polish-1/demo-390.png`.
+- Cold live recheck after deployment: all five route smoke checks passed; `?demo=1` redirected to `/demo/?demo=1`; changing preset, hum, theme, rights, project name, then Reset restored archive/light/unchecked/St Anne/three passages. Live screenshot: `test-results/polish-1/live-demo-390.png`.
 
 ## Deploy and release
 
