@@ -29,7 +29,13 @@ Run from a fresh `npm ci` install on 2026-08-28 UTC:
 
 ## Deploy and release
 
-The static production deploy and GitHub release are performed after this repair commit is pushed. The target Static Web App is `sf-score-aligned-choir-cleanup` in resource group `sociobot`; its production hostname is `jolly-forest-028552210.7.azurestaticapps.net`, mapped to `https://score-aligned-choir-cleanup.sociobot.in`.
+- Repair commit: `d34df7c662d5a69c85e8123256d638f9898b6ae1`, pushed to `main`; release tag: `v0.1.3`.
+- Static production deploy: `swa deploy dist/site --app-name sf-score-aligned-choir-cleanup --resource-group sociobot --env production --swa-config-location public-site --no-use-keychain`. The target is `sf-score-aligned-choir-cleanup` in resource group `sociobot`, hostname `jolly-forest-028552210.7.azurestaticapps.net`, mapped to `https://score-aligned-choir-cleanup.sociobot.in`.
+- Live identity: the production `/demo/` HTML SHA-256 is `04c3346cf34d3cddacd29ab084af5a09c229a30c0951a65338c399c6819f25f3` and its app CSS SHA-256 is `59971c9405444fde7154ea85af2fdb3e09e3a44acf0008b33ca0939d9cbe288b`; both exactly match `dist/site`.
+- Live `/demo/` at 390 px in dark mode measured `#102a36` on `#f3efe3` (12.99:1); axe returned zero serious/critical findings. Live offline reload kept all three sample passages and showed `Offline · local tools ready` with zero errors.
+- The response-policy probe of 40 concurrent invalid license checks returned 30 HTTP 200 responses and 10 HTTP 429 responses; every 429 included `Retry-After: 4`.
+- GitHub Actions release run [`33180086212`](https://github.com/B-Divyesh/sf-score-aligned-choir-cleanup/actions/runs/33180086212) completed successfully. Release [`v0.1.3`](https://github.com/B-Divyesh/sf-score-aligned-choir-cleanup/releases/tag/v0.1.3) targets the repair commit and includes two macOS DMGs, Windows EXE/MSI, Linux AppImage/DEB, `SHA256SUMS`, and `latest.json`.
+- Downloaded `Choir.Cleanup_0.1.3_amd64.deb`; its SHA-256 is `48a68c0b39be3a59b887ceeb026de7c33e882e7cdc1042d8d1efb07d5f7b73d7` and `sha256sum -c SHA256SUMS --ignore-missing` passed. `latest.json` is valid for version `0.1.3` and maps all six platform artifacts.
 
 ## Known gaps and operator action
 
