@@ -1,5 +1,7 @@
 # Handoff — Choir Cleanup v0.1.0
 
+> **Independent verification outcome (2026-08-28): FAIL.** Candidate `792204da2a76de99955a5be1a99af98dd1bf7ec6` has no required claims manifest/tests, no one-click isolated sample demo, and a first screen that starts with download rather than sample use. The live site hashes match the candidate's static build, but downloadable desktop release `v0.1.0` was built from `ebf6011`, not this candidate. See `.factory/verification.md` for exact evidence and severity-ranked defects. Do not release this candidate until those blocking defects are resolved and the candidate is rebuilt/tagged.
+
 ## What was built
 
 - A Tauri 2 desktop workbench with a small Vite/TypeScript interface and Rust save dialog.
