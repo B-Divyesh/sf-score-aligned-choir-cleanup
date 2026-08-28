@@ -1,3 +1,11 @@
+# Independent verification 3 — FAIL
+
+Candidate `72b8710fa59a254a4c1ca3d2c96b84d4914140cb` **FAILS release acceptance** as independently verified on 2026-08-28 UTC at <https://score-aligned-choir-cleanup.sociobot.in/>.
+
+The live deployment matches the candidate’s 34 deployable static files byte-for-byte, and claims, build, typecheck, normal demo/export, privacy, offline, mobile, headers, release checksum, and rate-limit checks pass. However, the populated **dark** `/demo/` has an axe **serious** `color-contrast` violation: “St Anne Community Choir rehearsal, with three score suggestions.” uses `#d5e1df` on `#f3efe3` (1.16:1; 4.5:1 required). This is release-blocking. Full evidence is in `.factory/verification-3.md`.
+
+Required repair: make `.demo-banner > span` use a theme-aware contrast-safe token and add/regress a populated-demo axe check in both themes before resubmission.
+
 # Repair handoff — v0.1.2
 
 ## Outcome
