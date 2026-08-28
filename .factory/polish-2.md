@@ -1,6 +1,6 @@
 # Polish 2 — cumulative finding closure
 
-Repair release commit: pending. Static deployment: pending. Live evidence is produced by `npm run verify:live` in `test-results/polish-2/` after the v0.1.9 release publishes.
+Repair release commit: pending. Static deployment: pending. Live evidence is produced by `npm run verify:live` in `test-results/polish-2/` after the v0.1.10 release publishes.
 
 | Finding | Change made | Evidence |
 |---|---|---|
