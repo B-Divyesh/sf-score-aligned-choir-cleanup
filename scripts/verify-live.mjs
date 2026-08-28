@@ -4,7 +4,7 @@ import { chromium } from "playwright-core";
 import AxeBuilder from "@axe-core/playwright";
 
 const base = (process.argv[2] || "https://score-aligned-choir-cleanup.sociobot.in").replace(/\/$/, "");
-const expectedVersion = process.env.EXPECTED_VERSION || "0.1.5";
+const expectedVersion = process.env.EXPECTED_VERSION || "0.1.6";
 const evidence = process.env.EVIDENCE_DIR || "test-results/polish-2";
 await mkdir(evidence, { recursive: true });
 
@@ -61,18 +61,21 @@ await page.locator("#theme").click();
 await page.locator("#rights").check();
 await page.locator("#project-name").fill("Temporary live edit");
 await page.locator("#reset-demo").click();
+assert.equal(await page.evaluate(() => document.activeElement?.id), "app-title");
+const sourceTop = await page.locator("#sources").evaluate((node) => node.getBoundingClientRect().top);
+assert(sourceTop >= -2 && sourceTop < 260, `Reset scroll is not at Sources: ${sourceTop}`);
 assert.equal(await page.locator("#project-name").inputValue(), "St Anne autumn concert");
 assert.equal(await page.locator('input[value="archive"]').isChecked(), true);
 assert.equal(await page.locator("#hum").isChecked(), false);
 assert.equal(await page.locator("#rights").isChecked(), false);
 assert.equal(await page.locator("html").getAttribute("data-theme"), "light");
 assert.equal(await page.locator("#passage-list li").count(), 3);
-assert.equal(await page.evaluate(() => document.activeElement?.id), "app-title");
 assert.deepEqual(await page.evaluate(() => ({
   project: localStorage.getItem("choir-cleanup:project"),
   theme: localStorage.getItem("choir-cleanup:theme"),
   license: localStorage.getItem("sb_license:score-aligned-choir-cleanup"),
 })), { project: "REAL-PROJECT-SENTINEL", theme: "dark", license: "REAL-LICENSE-SENTINEL" });
+await page.locator("#sources").evaluate((node) => node.scrollIntoView({ block: "start" }));
 await page.screenshot({ path: `${evidence}/live-demo-390.png` });
 
 await page.locator("#rights").check();

@@ -260,7 +260,7 @@ test("every public route uses the same navigation and complete metadata", async 
     await expect(page.locator('nav[aria-label="Primary"] a')).toHaveText(["Demo", "Method", "License", "Privacy"]);
     await expect(page.locator('nav[aria-label="Primary"] a')).toHaveCount(4);
     for (const link of await page.locator('nav[aria-label="Primary"] a').all()) await expect(link).toBeVisible();
-    await expect(page.locator("footer")).toContainText("Built by Param Factory · v0.1.5");
+    await expect(page.locator("footer")).toContainText("Built by Param Factory · v0.1.6");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
     const axe = await new AxeBuilder({ page }).analyze();
     expect(axe.violations, `${path} has axe violations`).toEqual([]);
@@ -316,6 +316,10 @@ test("@claim:demo-isolation sample data never reads or writes real project state
   await page.locator(".license-panel summary").click();
   await page.locator("#license-input").fill("temporary-license");
   await page.locator("#reset-demo").click();
+  await expect(page.locator("#app-title")).toBeFocused();
+  const sourceTop = await page.locator("#sources").evaluate((node) => node.getBoundingClientRect().top);
+  expect(sourceTop).toBeGreaterThanOrEqual(-2);
+  expect(sourceTop).toBeLessThan(260);
   await expect(page.locator("#project-name")).toHaveValue("St Anne autumn concert");
   await expect(page.locator('input[value="archive"]')).toBeChecked();
   await expect(page.locator("#hum")).not.toBeChecked();
@@ -327,7 +331,6 @@ test("@claim:demo-isolation sample data never reads or writes real project state
   await expect(page.locator("#passage-error")).toBeEmpty();
   await expect(page.locator("#license-input")).toHaveValue("");
   await expect(page.locator("#license-state")).toHaveText("Free edition");
-  await expect(page.locator("#app-title")).toBeFocused();
   const stored = await page.evaluate(() => ({
     project: localStorage.getItem("choir-cleanup:project"),
     theme: localStorage.getItem("choir-cleanup:theme"),

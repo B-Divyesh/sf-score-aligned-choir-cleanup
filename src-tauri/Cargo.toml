@@ -1,6 +1,6 @@
 [package]
 name = "score-aligned-choir-cleanup"
-version = "0.1.5"
+version = "0.1.6"
 description = "Local-first score-aligned archival choir cleanup"
 authors = ["Param Factory"]
 license = "MIT"

@@ -123,8 +123,14 @@ function loadSampleProject(reset = false) {
   drawWaveform();
   updateReceipt();
   setStatus("Confirm sample recording rights to enable export.");
-  $("#sources").scrollIntoView({ block: "start", behavior: reset || matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
-  if (reset) window.setTimeout(() => $("#app-title").focus({ preventScroll: true }), 0);
+  if (reset) window.setTimeout(() => {
+    const previousScrollBehavior = document.documentElement.style.scrollBehavior;
+    document.documentElement.style.scrollBehavior = "auto";
+    $("#sources").scrollIntoView({ block: "start", behavior: "auto" });
+    document.documentElement.style.scrollBehavior = previousScrollBehavior;
+    $("#app-title").focus({ preventScroll: true });
+  }, 0);
+  else $("#sources").scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
 }
 
 function cleanup(): Cleanup {
